@@ -207,6 +207,54 @@ body[theme="PURPLE"] {
     width: 100%;
 }
 
+/* Mode Toggle Button Group */
+.mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background-color: var(--bg-input);
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.mode-btn {
+    width: 22px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: var(--font-family);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    cursor: pointer;
+    outline: none;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.mode-btn:not(.active):hover {
+    background-color: var(--btn-hover);
+    color: var(--text-primary);
+}
+
+.mode-btn.active {
+    background-color: var(--btn-primary-bg);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.mode-btn.mode-t {
+    border-right: 1px solid var(--border-color);
+}
+
 .input-wrapper {
     position: relative;
     flex: 1;
@@ -527,3 +575,16 @@ body[theme="PURPLE"] {
     background-color: var(--chip-hover);
     border-color: var(--border-focus);
 }
+
+/* Shake feedback animation for empty URL */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+.shake {
+    animation: shake 0.3s ease-in-out;
+    border-color: var(--btn-danger-bg) !important;
+}
+

@@ -5,6 +5,29 @@ All notable changes to the **Eagle Extra Links** plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-08
+
+### Added
+- **Title and URL Display Modes**:
+  - Optional `title` property in data model and REST API for human-readable link names.
+  - Segmented `[ T | U ]` button control on each row to toggle display between Title and URL with active state highlight.
+  - Smart default display mode: rows with titles display in Title Mode (`T` active) by default; rows without titles display in URL Mode (`U` active) by default.
+  - Native browser tooltip displaying the underlying target URL when hovering over an input in Title Mode.
+  - Support for launching target URL from Title Mode via `Enter` or inline open icon.
+  - Visual `.shake` animation feedback when attempting to launch empty URLs.
+- **Sidecar Schema Version 2**:
+  - `extra-links.json` upgraded to schema version 2 storing `[{ title: string, url: string }]`.
+  - Transparent backward compatibility: legacy version 1 string arrays are automatically normalized to `{ title: '', url: '...' }` on load.
+- **REST IPC Extensions**:
+  - `GET /api/item/:id/links` returns array of `{ title, url }` objects.
+  - `POST /api/item/:id/links` accepts `{ title, url }` and enriches titles on existing links if previously blank.
+  - `PUT /api/item/:id/links` accepts array of `{ title, url }` objects.
+  - `DELETE /api/item/:id/links` supports removing links by matching `url` or `index`.
+- **Specifications & Documentation**:
+  - Complete specification suite added under `spec/title-and-url-modes/` (`requirements.md`, `tech.md`, `design.md`, `api.md`, `obsidian-integration.md`, `tasks.md`).
+- **Testing**:
+  - Test runner expanded with v1-to-v2 normalization tests, title persistence, and title enrichment on duplicate post.
+
 ## [1.0.0] - 2026-09-08
 
 ### Added

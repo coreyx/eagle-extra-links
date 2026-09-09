@@ -179,22 +179,35 @@ const IpcServer = {
                         // POST: Append link(s)
                         if (req.method === 'POST') {
                             const body = await this._readJsonBody(req);
-                            const rawUrls = body.urls || (body.url !== undefined ? [body.url] : []);
-                            const urlsToAppend = (Array.isArray(rawUrls) ? rawUrls : [rawUrls])
-                                .map(u => (typeof u === 'string' ? u.trim() : ''))
-                                .filter(u => u.length > 0);
+                            let entriesToAppend = [];
+
+                            if (Array.isArray(body.links)) {
+                                entriesToAppend = body.links;
+                            } else if (Array.isArray(body.urls)) {
+                                entriesToAppend = body.urls.map(u => ({ title: '', url: u }));
+                            } else if (body.url !== undefined) {
+                                entriesToAppend = [{
+                                    title: typeof body.title === 'string' ? body.title : '',
+                                    url: body.url
+                                }];
+                            }
+
+                            // Normalize and filter out empty URLs
+                            entriesToAppend = entriesToAppend
+                                .map(e => Storage.normalizeLink(e))
+                                .filter(e => e.url.trim().length > 0);
                             
-                            if (urlsToAppend.length === 0) {
+                            if (entriesToAppend.length === 0) {
                                 return this._sendJson(res, 400, {
                                     status: 'error',
-                                    message: 'Missing "url" or "urls" in request body.'
+                                    message: 'Missing "url", "urls", or "links" in request body.'
                                 });
                             }
 
                             const allowDuplicates = body.allowDuplicates === true;
-                            const result = await Storage.appendLink(itemId, urlsToAppend, allowDuplicates);
+                            const result = await Storage.appendLink(itemId, entriesToAppend, allowDuplicates);
 
-                            if (result.addedCount > 0) {
+                            if (result.changed) {
                                 this._broadcastUpdate(itemId, result.links);
                             }
 
@@ -217,7 +230,8 @@ const IpcServer = {
                                 });
                             }
 
-                            const updatedLinks = await Storage.setLinks(itemId, body.links);
+                            const normalized = body.links.map(l => Storage.normalizeLink(l));
+                            const updatedLinks = await Storage.setLinks(itemId, normalized);
                             this._broadcastUpdate(itemId, updatedLinks);
                             return this._sendJson(res, 200, {
                                 status: 'success',
@@ -234,7 +248,8 @@ const IpcServer = {
                             if (typeof body.index === 'number') {
                                 currentLinks = await Storage.removeLinkByIndex(itemId, body.index);
                             } else if (typeof body.url === 'string') {
-                                currentLinks = currentLinks.filter(u => u !== body.url);
+                                const targetUrl = body.url.trim();
+                                currentLinks = currentLinks.filter(l => l.url.trim() !== targetUrl);
                                 await Storage.saveLinks(itemId, currentLinks);
                             } else {
                                 // If neither index nor url specified, clear all links

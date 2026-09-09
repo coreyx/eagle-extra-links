@@ -43,10 +43,29 @@ const StorageManager = {
     },
 
     /**
+     * Normalizes a link entry (string or object) into { title: string, url: string }.
+     * @param {string|object} entry 
+     * @returns {{ title: string, url: string }}
+     */
+    normalizeLink(entry) {
+        if (typeof entry === 'string') {
+            return { title: '', url: entry };
+        }
+        if (entry && typeof entry === 'object') {
+            return {
+                title: typeof entry.title === 'string' ? entry.title : '',
+                url: typeof entry.url === 'string' ? entry.url : ''
+            };
+        }
+        return { title: '', url: '' };
+    },
+
+    /**
      * Loads the extra links array for a given item.
+     * Automatically normalizes legacy v1 string arrays into { title, url } objects.
      * @param {string} itemId 
      * @param {object} [itemInstance]
-     * @returns {Promise<string[]>}
+     * @returns {Promise<Array<{ title: string, url: string }>>}
      */
     async loadLinks(itemId, itemInstance = null) {
         const filePath = this.getSidecarPath(itemId, itemInstance);
@@ -61,7 +80,7 @@ const StorageManager = {
             const raw = await fs.promises.readFile(filePath, 'utf8');
             const data = JSON.parse(raw);
             if (Array.isArray(data.links)) {
-                return data.links;
+                return data.links.map(l => this.normalizeLink(l));
             }
             return [];
         } catch (err) {
@@ -71,10 +90,10 @@ const StorageManager = {
     },
 
     /**
-     * Persists the extra links array for an item.
-     * Empty strings are intentionally preserved to keep blank input slots.
+     * Persists the extra links array for an item using Schema Version 2.
+     * Empty strings for title and url are intentionally preserved.
      * @param {string} itemId 
-     * @param {string[]} links 
+     * @param {Array<{ title: string, url: string }|string>} links 
      * @param {object} [itemInstance]
      * @returns {Promise<boolean>}
      */
@@ -88,10 +107,14 @@ const StorageManager = {
         const filePath = path.join(itemDir, 'extra-links.json');
         const tempPath = path.join(itemDir, `extra-links.json.tmp.${Date.now()}`);
 
+        const normalizedLinks = Array.isArray(links) 
+            ? links.map(l => this.normalizeLink(l)) 
+            : [];
+
         const payload = {
-            version: 1,
+            version: 2,
             itemId: itemId,
-            links: Array.isArray(links) ? links : [],
+            links: normalizedLinks,
             updatedAt: Date.now()
         };
 
@@ -115,62 +138,63 @@ const StorageManager = {
     },
 
     /**
-     * Appends a new link (or links) to an item's extra links.
+     * Appends new link(s) to an item's extra links.
      * Prevents duplicate URLs by default (comparing trimmed strings for non-empty values).
-     * Empty strings are preserved if explicitly provided.
+     * If a duplicate URL is supplied with a title and the existing entry lacks one, updates title.
      * @param {string} itemId 
-     * @param {string|string[]} newUrl 
+     * @param {string|object|Array<string|object>} newEntries 
      * @param {boolean} [allowDuplicates=false]
-     * @returns {Promise<{ links: string[], addedCount: number, alreadyExists: boolean }>}
+     * @returns {Promise<{ links: Array<{ title: string, url: string }>, addedCount: number, alreadyExists: boolean }>}
      */
-    async appendLink(itemId, newUrl, allowDuplicates = false) {
+    async appendLink(itemId, newEntries, allowDuplicates = false) {
         const currentLinks = await this.loadLinks(itemId);
-        const urlsToAdd = Array.isArray(newUrl) ? newUrl : [newUrl];
+        const entriesToAdd = (Array.isArray(newEntries) ? newEntries : [newEntries])
+            .map(e => this.normalizeLink(e));
         
         let addedCount = 0;
         let anyAlreadyExisted = false;
+        let titleUpdated = false;
 
-        const existingTrimmed = new Set(
-            currentLinks
-                .map(l => (typeof l === 'string' ? l.trim() : ''))
-                .filter(l => l.length > 0)
-        );
+        for (const entry of entriesToAdd) {
+            const trimmedUrl = entry.url.trim();
 
-        for (const u of urlsToAdd) {
-            const raw = typeof u === 'string' ? u : String(u || '');
-            const trimmed = raw.trim();
-
-            if (!allowDuplicates && trimmed.length > 0 && existingTrimmed.has(trimmed)) {
-                anyAlreadyExisted = true;
-                continue;
+            if (!allowDuplicates && trimmedUrl.length > 0) {
+                const existing = currentLinks.find(l => l.url.trim() === trimmedUrl);
+                if (existing) {
+                    anyAlreadyExisted = true;
+                    // Enrich existing title if currently empty and incoming title is non-empty
+                    if (!existing.title && entry.title && entry.title.trim().length > 0) {
+                        existing.title = entry.title.trim();
+                        titleUpdated = true;
+                    }
+                    continue;
+                }
             }
 
-            currentLinks.push(raw);
-            if (trimmed.length > 0) {
-                existingTrimmed.add(trimmed);
-            }
+            currentLinks.push(entry);
             addedCount++;
         }
 
-        if (addedCount > 0) {
+        if (addedCount > 0 || titleUpdated) {
             await this.saveLinks(itemId, currentLinks);
         }
 
         return {
             links: currentLinks,
             addedCount,
-            alreadyExists: anyAlreadyExisted
+            alreadyExists: anyAlreadyExisted,
+            changed: (addedCount > 0 || titleUpdated)
         };
     },
 
     /**
      * Replaces the entire links array for an item.
      * @param {string} itemId 
-     * @param {string[]} newLinks 
-     * @returns {Promise<string[]>}
+     * @param {Array<{ title: string, url: string }|string>} newLinks 
+     * @returns {Promise<Array<{ title: string, url: string }>>}
      */
     async setLinks(itemId, newLinks) {
-        const links = Array.isArray(newLinks) ? newLinks : [];
+        const links = Array.isArray(newLinks) ? newLinks.map(l => this.normalizeLink(l)) : [];
         await this.saveLinks(itemId, links);
         return links;
     },

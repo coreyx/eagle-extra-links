@@ -7,6 +7,7 @@
     // Current state
     let currentItem = null;
     let currentLinks = [];
+    let rowModes = [];
     let pendingDeleteIndex = null;
     const debouncedSaver = StorageManager.createDebouncedSaver(300);
 
@@ -69,9 +70,19 @@
 
     /**
      * Safely opens an external URL using eagle.shell.openExternal.
+     * If URL is empty, triggers shake animation on the row element.
      */
-    async function openUrl(rawUrl) {
+    async function openUrl(rawUrl, rowElement = null) {
         if (!rawUrl || !rawUrl.trim()) {
+            if (rowElement) {
+                const wrapper = rowElement.querySelector('.input-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('shake');
+                    void wrapper.offsetWidth; // trigger reflow
+                    wrapper.classList.add('shake');
+                    setTimeout(() => wrapper.classList.remove('shake'), 400);
+                }
+            }
             return;
         }
 
@@ -94,26 +105,57 @@
     }
 
     /**
-     * Renders URL fields in the Inspector view.
+     * Renders URL fields in the Inspector view with Title & URL modes.
      */
     function renderLinks(links) {
-        currentLinks = Array.isArray(links) ? [...links] : [];
+        currentLinks = Array.isArray(links)
+            ? links.map(l => (typeof StorageManager !== 'undefined' && StorageManager.normalizeLink)
+                ? StorageManager.normalizeLink(l)
+                : (typeof l === 'string' ? { title: '', url: l } : { title: l.title || '', url: l.url || '' }))
+            : [];
 
-        // If no links, initialize with 1 blank field (REQ-1.2, AC-1.1)
+        // If no links, initialize with 1 blank field (REQ-1.2, AC-1.1, REQ-10)
         if (currentLinks.length === 0) {
-            currentLinks = [''];
+            currentLinks = [{ title: '', url: '' }];
         }
+
+        // Maintain or initialize rowModes for each row:
+        // Default: Title mode if non-empty title exists, otherwise URL mode (REQ-11.1, REQ-11.2)
+        rowModes = currentLinks.map((link, idx) => {
+            if (rowModes[idx] === 'title' || rowModes[idx] === 'url') {
+                return rowModes[idx];
+            }
+            return (link.title && link.title.trim().length > 0) ? 'title' : 'url';
+        });
 
         urlListEl.innerHTML = '';
 
         currentLinks.forEach((link, index) => {
+            const mode = rowModes[index] || 'url';
             const row = document.createElement('div');
             row.className = 'url-row';
             row.dataset.index = index;
 
+            const isTitleMode = mode === 'title';
+            const displayValue = isTitleMode ? link.title : link.url;
+            const placeholderText = isTitleMode ? 'Title (optional)' : 'https://... or obsidian://...';
+            const tooltipText = isTitleMode 
+                ? (link.url ? link.url : 'No URL set')
+                : (link.title ? link.title : link.url);
+
             row.innerHTML = `
+                <div class="mode-toggle" role="group" aria-label="Display Mode">
+                    <button type="button" class="mode-btn mode-t ${isTitleMode ? 'active' : ''}" title="Title Mode" aria-label="Title Mode">T</button>
+                    <button type="button" class="mode-btn mode-u ${!isTitleMode ? 'active' : ''}" title="URL Mode" aria-label="URL Mode">U</button>
+                </div>
                 <div class="input-wrapper">
-                    <input type="text" class="url-input" placeholder="https://... or obsidian://..." value="${escapeHtml(link)}">
+                    <input 
+                        type="text" 
+                        class="url-input" 
+                        placeholder="${placeholderText}" 
+                        value="${escapeHtml(displayValue)}"
+                        title="${escapeHtml(tooltipText)}"
+                    >
                     <button type="button" class="icon-btn link-btn" title="Open URL in default app">
                         ${OPEN_ICON_SVG}
                     </button>
@@ -123,13 +165,59 @@
                 </button>
             `;
 
+            const modeTBtn = row.querySelector('.mode-t');
+            const modeUBtn = row.querySelector('.mode-u');
             const input = row.querySelector('.url-input');
             const linkBtn = row.querySelector('.link-btn');
             const deleteBtn = row.querySelector('.delete-btn');
 
+            // Switch display mode helper
+            const switchMode = (targetMode) => {
+                if (rowModes[index] === targetMode) {
+                    input.focus();
+                    return;
+                }
+
+                // Commit current input value before switching (REQ-11.7)
+                const currentVal = input.value;
+                if (rowModes[index] === 'title') {
+                    currentLinks[index].title = currentVal;
+                } else {
+                    currentLinks[index].url = currentVal;
+                }
+
+                rowModes[index] = targetMode;
+
+                if (targetMode === 'title') {
+                    modeTBtn.classList.add('active');
+                    modeUBtn.classList.remove('active');
+                    input.value = currentLinks[index].title;
+                    input.placeholder = 'Title (optional)';
+                    input.title = currentLinks[index].url ? currentLinks[index].url : 'No URL set';
+                } else {
+                    modeUBtn.classList.add('active');
+                    modeTBtn.classList.remove('active');
+                    input.value = currentLinks[index].url;
+                    input.placeholder = 'https://... or obsidian://...';
+                    input.title = currentLinks[index].title ? currentLinks[index].title : currentLinks[index].url;
+                }
+
+                input.focus();
+            };
+
+            modeTBtn.addEventListener('click', () => switchMode('title'));
+            modeUBtn.addEventListener('click', () => switchMode('url'));
+
             // Input change & debounced auto-save
             input.addEventListener('input', (e) => {
-                currentLinks[index] = e.target.value;
+                const val = e.target.value;
+                if (rowModes[index] === 'title') {
+                    currentLinks[index].title = val;
+                } else {
+                    currentLinks[index].url = val;
+                    input.title = currentLinks[index].title ? currentLinks[index].title : val;
+                }
+
                 if (currentItem) {
                     debouncedSaver.save(currentItem.id, currentLinks, currentItem, {
                         onSaving: () => setStatus('saving'),
@@ -147,16 +235,24 @@
                 });
             });
 
-            // Enter key triggers open
+            // Open action handler (Enter key or link icon click)
+            const executeOpen = () => {
+                if (rowModes[index] === 'title') {
+                    currentLinks[index].title = input.value;
+                } else {
+                    currentLinks[index].url = input.value;
+                }
+                openUrl(currentLinks[index].url, row);
+            };
+
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    openUrl(input.value);
+                    executeOpen();
                 }
             });
 
-            // Click link button
             linkBtn.addEventListener('click', () => {
-                openUrl(input.value);
+                executeOpen();
             });
 
             // Click delete button
@@ -175,7 +271,8 @@
      * Adds a new URL field.
      */
     function addField() {
-        currentLinks.push('');
+        currentLinks.push({ title: '', url: '' });
+        rowModes.push('url'); // starts in URL mode per REQ-11.2
         renderLinks(currentLinks);
 
         // Focus the newly added input
@@ -211,19 +308,23 @@
     async function confirmDelete() {
         if (pendingDeleteIndex !== null && pendingDeleteIndex >= 0 && pendingDeleteIndex < currentLinks.length) {
             currentLinks.splice(pendingDeleteIndex, 1);
+            rowModes.splice(pendingDeleteIndex, 1);
             
             // If all fields were deleted, re-initialize with single empty field (AC-4.5)
             if (currentLinks.length === 0) {
-                currentLinks = [''];
+                currentLinks = [{ title: '', url: '' }];
+                rowModes = ['url'];
             }
 
             renderLinks(currentLinks);
+            hideDeleteModal();
 
             if (currentItem) {
-                await StorageManager.saveLinks(currentItem.id, currentLinks, currentItem);
+                setStatus('saving');
+                const success = await StorageManager.saveLinks(currentItem.id, currentLinks, currentItem);
+                setStatus(success ? 'saved' : 'error');
             }
         }
-        hideDeleteModal();
     }
 
     /**
@@ -382,7 +483,10 @@
         }
     } else {
         // Standalone browser / testing fallback
-        renderLinks(['https://example.com', 'obsidian://adv-uri?vault=Main&filepath=Note.md']);
+        renderLinks([
+            { title: 'Example Site', url: 'https://example.com' },
+            { title: 'Project Notes', url: 'obsidian://adv-uri?vault=Main&filepath=Note.md' }
+        ]);
         IpcServer.start();
     }
 })();

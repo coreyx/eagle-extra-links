@@ -70,36 +70,74 @@ async function runTests() {
         const resolvedDir = StorageManager.resolveItemDir('MTSPUNN17LBUG');
         assert.strictEqual(resolvedDir, sampleDir);
 
-        // Test save and load with empty fields preserved
+        // Test backward compatibility: load legacy v1 string format
+        const v1FilePath = path.join(sampleDir, 'extra-links.json');
+        await fs.promises.writeFile(v1FilePath, JSON.stringify({
+            version: 1,
+            itemId: 'MTSPUNN17LBUG',
+            links: ['https://legacy-url.com', '']
+        }), 'utf8');
+
+        const normalizedFromV1 = await StorageManager.loadLinks('MTSPUNN17LBUG');
+        assert.deepStrictEqual(normalizedFromV1, [
+            { title: '', url: 'https://legacy-url.com' },
+            { title: '', url: '' }
+        ], 'Legacy v1 string links must be normalized to { title, url }');
+
+        // Test save and load with Schema v2
         const testLinks = [
-            'https://example.com/test',
-            'obsidian://adv-uri?vault=Main&filepath=Note.md',
-            ''
+            { title: 'Test Example', url: 'https://example.com/test' },
+            { title: 'Obsidian Note', url: 'obsidian://adv-uri?vault=Main&filepath=Note.md' },
+            { title: '', url: '' }
         ];
 
         const saveOk = await StorageManager.saveLinks('MTSPUNN17LBUG', testLinks);
         assert.strictEqual(saveOk, true, 'Save should succeed');
 
         const loadedLinks = await StorageManager.loadLinks('MTSPUNN17LBUG');
-        assert.deepStrictEqual(loadedLinks, testLinks, 'Loaded links must match saved links including empty string');
+        assert.deepStrictEqual(loadedLinks, testLinks, 'Loaded links must match saved links including empty fields');
 
-        // Test append with deduplication
-        const appendRes1 = await StorageManager.appendLink('MTSPUNN17LBUG', 'https://second-url.com');
+        // Test append with title
+        const appendRes1 = await StorageManager.appendLink('MTSPUNN17LBUG', {
+            title: 'Second Site',
+            url: 'https://second-url.com'
+        });
         assert.strictEqual(appendRes1.links.length, 4);
         assert.strictEqual(appendRes1.addedCount, 1);
         assert.strictEqual(appendRes1.alreadyExists, false);
-        assert.strictEqual(appendRes1.links[3], 'https://second-url.com');
+        assert.strictEqual(appendRes1.links[3].title, 'Second Site');
+        assert.strictEqual(appendRes1.links[3].url, 'https://second-url.com');
 
         // Test duplicate append (should NOT duplicate)
-        const appendResDuplicate = await StorageManager.appendLink('MTSPUNN17LBUG', '  https://second-url.com  ');
+        const appendResDuplicate = await StorageManager.appendLink('MTSPUNN17LBUG', {
+            title: 'Duplicate Title',
+            url: '  https://second-url.com  '
+        });
         assert.strictEqual(appendResDuplicate.links.length, 4, 'Duplicate URL must not increase links length');
         assert.strictEqual(appendResDuplicate.addedCount, 0, 'Duplicate append must report addedCount 0');
         assert.strictEqual(appendResDuplicate.alreadyExists, true, 'Duplicate append must report alreadyExists true');
 
+        // Test duplicate with title enrichment on an entry that had empty title
+        // In testLinks, index 2 was empty url, but index 3 (second-url.com) currently has title 'Second Site'.
+        // Let's enrich a link with an empty title:
+        await StorageManager.saveLinks('MTSPUNN17LBUG', [
+            { title: 'Test Example', url: 'https://example.com/test' },
+            { title: '', url: 'https://needs-title.com' }
+        ]);
+
+        const appendResEnrich = await StorageManager.appendLink('MTSPUNN17LBUG', {
+            title: 'Now Has Title',
+            url: 'https://needs-title.com'
+        });
+        assert.strictEqual(appendResEnrich.links.length, 2, 'Title enrichment must not create a duplicate row');
+        assert.strictEqual(appendResEnrich.addedCount, 0);
+        assert.strictEqual(appendResEnrich.alreadyExists, true);
+        assert.strictEqual(appendResEnrich.links[1].title, 'Now Has Title', 'Existing empty title must be enriched');
+
         // Test remove by index
-        const removed = await StorageManager.removeLinkByIndex('MTSPUNN17LBUG', 3);
-        assert.strictEqual(removed.length, 3);
-        assert.deepStrictEqual(removed, testLinks);
+        const removed = await StorageManager.removeLinkByIndex('MTSPUNN17LBUG', 1);
+        assert.strictEqual(removed.length, 1);
+        assert.strictEqual(removed[0].url, 'https://example.com/test');
 
         console.log('   ✓ StorageManager tests passed.');
     } else {
@@ -133,47 +171,91 @@ async function runTests() {
         const getJson = JSON.parse(getLinksRes.body);
         assert.strictEqual(getJson.status, 'success');
         assert.strictEqual(Array.isArray(getJson.links), true);
+        assert.strictEqual(typeof getJson.links[0].title, 'string');
+        assert.strictEqual(typeof getJson.links[0].url, 'string');
 
-        // Test POST /api/item/:id/links (initial append)
+        // Test POST /api/item/:id/links (with title)
         const testUrl = 'obsidian://adv-uri?vault=Main&filepath=IpcTest.md';
+        const testTitle = 'IPC Backlink Note';
         const postRes = await makeRequest(
             'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
             'POST',
-            JSON.stringify({ url: testUrl })
+            JSON.stringify({ title: testTitle, url: testUrl })
         );
         assert.strictEqual(postRes.statusCode, 200);
         const postJson = JSON.parse(postRes.body);
         assert.strictEqual(postJson.status, 'success');
         assert.strictEqual(postJson.addedCount, 1);
         assert.strictEqual(postJson.alreadyExists, false);
-        assert.strictEqual(postJson.links.includes(testUrl), true);
+        const createdLink = postJson.links.find(l => l.url === testUrl);
+        assert.ok(createdLink, 'Added link must be present in response');
+        assert.strictEqual(createdLink.title, testTitle);
         const initialCount = postJson.links.length;
 
         // Test POST duplicate link (idempotent; should NOT duplicate)
         const duplicatePostRes = await makeRequest(
             'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
             'POST',
-            JSON.stringify({ url: `  ${testUrl}  ` })
+            JSON.stringify({ title: 'Ignored Title', url: `  ${testUrl}  ` })
         );
         assert.strictEqual(duplicatePostRes.statusCode, 200);
         const duplicateJson = JSON.parse(duplicatePostRes.body);
         assert.strictEqual(duplicateJson.status, 'success');
         assert.strictEqual(duplicateJson.addedCount, 0, 'Duplicate POST must have addedCount: 0');
         assert.strictEqual(duplicateJson.alreadyExists, true, 'Duplicate POST must have alreadyExists: true');
+        assert.strictEqual(duplicateJson.links.length, initialCount, 'Duplicate POST must not increase links array');
+
         // Test POST duplicate with allowDuplicates: true (explicit override)
         const allowedDupRes = await makeRequest(
             'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
             'POST',
-            JSON.stringify({ url: testUrl, allowDuplicates: true })
+            JSON.stringify({ title: 'Duplicate Allowed', url: testUrl, allowDuplicates: true })
         );
         assert.strictEqual(allowedDupRes.statusCode, 200);
         const allowedDupJson = JSON.parse(allowedDupRes.body);
         assert.strictEqual(allowedDupJson.addedCount, 1);
         assert.strictEqual(allowedDupJson.links.length, initialCount + 1);
 
-        // Cleanup: remove the added test links
-        postJson.links.pop();
-        await StorageManager.setLinks('MTSPUNN17LBUG', postJson.links);
+        // Test DELETE /api/item/:id/links by url
+        const deleteRes = await makeRequest(
+            'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
+            'DELETE',
+            JSON.stringify({ url: testUrl })
+        );
+        assert.strictEqual(deleteRes.statusCode, 200);
+        const deleteJson = JSON.parse(deleteRes.body);
+        assert.ok(!deleteJson.links.some(l => l.url === testUrl), 'Deleted url must no longer be present');
+
+        // Test POST with legacy url-only format (should default title to "")
+        const legacyPostRes = await makeRequest(
+            'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
+            'POST',
+            JSON.stringify({ url: 'https://legacy-post.com' })
+        );
+        assert.strictEqual(legacyPostRes.statusCode, 200);
+        const legacyPostJson = JSON.parse(legacyPostRes.body);
+        const legacyLink = legacyPostJson.links.find(l => l.url === 'https://legacy-post.com');
+        assert.ok(legacyLink);
+        assert.strictEqual(legacyLink.title, '', 'Omitted title must default to empty string');
+
+        // Test PUT /api/item/:id/links with structured links array
+        const putRes = await makeRequest(
+            'http://127.0.0.1:41605/api/item/MTSPUNN17LBUG/links',
+            'PUT',
+            JSON.stringify({
+                links: [
+                    { title: 'Replaced Title', url: 'https://replaced.com' }
+                ]
+            })
+        );
+        assert.strictEqual(putRes.statusCode, 200);
+        const putJson = JSON.parse(putRes.body);
+        assert.strictEqual(putJson.links.length, 1);
+        assert.strictEqual(putJson.links[0].title, 'Replaced Title');
+        assert.strictEqual(putJson.links[0].url, 'https://replaced.com');
+
+        // Cleanup: clear test links
+        await StorageManager.setLinks('MTSPUNN17LBUG', []);
     }
 
     // Test Access Control Rejection (403)
