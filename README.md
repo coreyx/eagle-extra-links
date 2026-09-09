@@ -277,8 +277,9 @@ Main.library/
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & CLI Diagnostics
 
+### 1. Automated Test Suite
 The repository includes a comprehensive, zero-dependency automated unit and integration test runner verifying all subsystems:
 
 ```bash
@@ -289,9 +290,72 @@ node test/test-runner.js
 - IP access filter (IPv4/IPv6 normalization, loopback `self`, wildcard ranges `192.168.1.x`).
 - Configuration persistence and validation.
 - Sidecar storage engine (v1-to-v2 normalization, atomic file swapping, preservation of blank slots).
+- Drag-and-drop index calculation logic and disk persistence of sorted lists.
 - HTTP REST IPC server endpoints (`/health`, `GET`, `POST`, `PUT`, `DELETE`).
 - Automatic link deduplication, title enrichment, and `allowDuplicates` override.
 - Access control rejection (HTTP 403 Forbidden).
+
+---
+
+### 2. Interactive CLI Link Tester (`test-push-link.js` & `test-push-link.ps1`)
+
+Use the included test tool to verify IPC server connectivity, push links with custom titles and URLs, and inspect the resulting stored links.
+
+#### Quick Start (Interactive Prompt)
+If you run without arguments in a terminal, the script auto-discovers items from your active Eagle library and interactively prompts for link details:
+
+```bash
+node test-push-link.js
+```
+
+Or via PowerShell:
+```powershell
+.\test-push-link.ps1
+```
+
+#### CLI Options & Flags
+
+| Flag | Shorthand | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `--title <title>` | `-t` | Link title (human-readable label) | Interactive prompt |
+| `--url <url>` | `-u` | Target URL, web address, or deep link URI | Interactive prompt |
+| `--id <itemId>` | `-i` | Target Eagle Item ID | Auto-detected from Eagle |
+| `--port <port>` | `-p` | Extra Links REST IPC port | `41596` (auto-scans if busy) |
+| `--host <host>` | `-H` | Host address | `127.0.0.1` |
+| `--standalone` | `-s` | Run in-process test server (no Eagle plugin required) | `false` |
+| `--allow-duplicates` | `-d` | Explicitly permit duplicate URLs | `false` (idempotent) |
+| `--json` | | Print raw JSON response from IPC server | `false` |
+| `--help` | `-h` | Display help screen and usage examples | |
+
+#### Common Usage Examples
+
+**1. Push with title and URL to auto-detected active item:**
+```bash
+node test-push-link.js --title "Obsidian Note" --url "obsidian://adv-uri?vault=Main&uid=123"
+```
+
+**2. Push to specific Eagle item and custom port:**
+```bash
+node test-push-link.js --id MTSPUNN17LBUG --title "Figma Spec" --url "https://figma.com/file/xyz" --port 41598
+```
+
+**3. Test immediately in Standalone Mode:**
+Spins up a temporary Extra Links server in-process against your library directly without needing the plugin open in Eagle UI:
+```bash
+node test-push-link.js --standalone --title "Documentation" --url "https://eagle.cool/blog"
+```
+
+**4. PowerShell command passing:**
+```powershell
+.\test-push-link.ps1 -Title "Design Token Spec" -Url "https://tokens.example.com"
+```
+
+#### Pro-Tips & Troubleshooting
+
+- **Smart Item Auto-Discovery**: If you don't supply an `--id`, the script queries Eagle Core's API (`http://127.0.0.1:41595/api/item/list`) to automatically locate the latest item in your open library.
+- **Port Conflict Detection**: Eagle's official `mcp-server` plugin defaults to port `41596`. If `test-push-link.js` detects `mcp-server` on 41596, it warns you and scans alternate ports (`41598`, `41599`, `41600`, `41605`). If you have `mcp-server` installed, open Extra Links settings (`⚙️`) in Eagle and set the port to `41598`.
+- **Idempotency & Title Enrichment**: Running the script with an existing URL will not duplicate the link. If the existing link previously had a blank title, sending a new title will automatically enrich it in-place!
+- **Safe Termination**: The script disables HTTP socket keep-alive (`agent: false`, `Connection: close`) and terminates cleanly (`process.exit(0)`) so it never hangs in scripts or CI.
 
 ---
 
@@ -300,24 +364,27 @@ node test/test-runner.js
 ```
 eagle-extra-links/
 ├── css/
-│   └── style.css                     # Native Eagle theming (6 themes) & UI styles
+│   └── style.css                     # Native Eagle theming (6 themes), drag handles & drop lines
 ├── js/
-│   ├── app.js                        # Inspector controller & mode state machine
+│   ├── app.js                        # Inspector controller, HTML5 DnD pipeline & state machine
 │   ├── config.js                     # IPC settings manager & localStorage cache
 │   ├── ip-filter.js                  # Access control & IP matching middleware
 │   ├── ipc-server.js                 # Embedded Node.js HTTP REST IPC server
 │   └── storage.js                    # Atomic sidecar storage engine & Schema v2
 ├── spec/
 │   ├── eagle-extra-links/            # Core system specifications (v1.0.0)
-│   └── title-and-url-modes/          # Title & URL display mode specifications (v1.1.0)
+│   ├── title-and-url-modes/          # Title & URL display mode specifications (v1.1.0)
+│   └── click-drag-sort/              # Clickable drag handler & link sorting specs (v1.2.0)
 │       ├── requirements.md           # EARS requirements & acceptance criteria
-│       ├── tech.md                   # Technical architecture & schema migration
-│       ├── design.md                 # UI wireframes & sequence diagrams
-│       ├── api.md                    # Standalone REST API reference
-│       ├── obsidian-integration.md   # Drop-in TypeScript helper & paste handler
-│       └── tasks.md                  # Detailed implementation checklist
+│       ├── tech.md                   # Controlled draggable pattern & DnD pipeline
+│       ├── design.md                 # UI layout wireframes & sequence diagrams
+│       ├── api.md                    # REST API link ordering semantics
+│       ├── obsidian-integration.md   # Link ordering preservation in Obsidian
+│       └── tasks.md                  # Implementation tracking checklist
 ├── test/
 │   └── test-runner.js                # Automated unit & integration test suite
+├── test-push-link.js                 # Interactive CLI test script for testing & pushing links
+├── test-push-link.ps1                # PowerShell wrapper for test-push-link.js
 ├── CHANGELOG.md                      # Keep a Changelog version history
 ├── RELEASE_NOTES.md                  # User-facing release notes
 ├── manifest.json                     # Eagle plugin manifest
