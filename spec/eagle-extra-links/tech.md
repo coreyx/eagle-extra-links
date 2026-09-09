@@ -11,7 +11,7 @@
 | **Frontend Language** | HTML5, Modern Vanilla JavaScript (ES2022+) | Inspector UI structure and event orchestration (zero external build tools) |
 | **UI & Styling** | Modern CSS3, CSS Custom Properties (Variables), Flexbox | Native Eagle theme matching and responsive Inspector widget layout |
 | **Persistence Engine** | Node.js `fs.promises` (File System) | Atomic read/write of `extra-links.json` sidecar files in `.info` folders |
-| **IPC Server** | Node.js Native `http` Module | Embedded RESTful server on `127.0.0.1:41596` for external integrations |
+| **IPC Server** | Node.js Native `http` Module | Embedded RESTful server on `127.0.0.1:41598` for external integrations |
 | **External Client** | Obsidian (obsidian.md) Desktop App | External knowledge base client communicating via IPC |
 | **Client Transport** | Obsidian `requestUrl` / Standard `fetch` | Cross-platform HTTP requests from Obsidian to Eagle plugin |
 
@@ -98,7 +98,7 @@ Instead, the Extra Links plugin stores its metadata in:
 ### 4.1 Communication Model
 To ensure reliable, hassle-free communication between an Obsidian plugin and the Eagle Extra Links plugin on both Windows and macOS, the plugin embeds a lightweight HTTP server using Node.js's built-in `http` module:
 - **Binding**: Configurable host/IP, defaulting to `127.0.0.1`. Can be set to `0.0.0.0` or a specific network interface IP for LAN access.
-- **Port**: Configurable port, defaulting to `41596` (range 1024–65535).
+- **Port**: Configurable port, defaulting to `41598` (range 1024–65535).
 - **On/Off Toggle**: Feature toggle allowing complete shutdown of the HTTP server (`server.close()`) for users who do not require external integrations.
 - **Access Restriction (IP / IP Range / Hostname)**:
   - Optional filter defaulting to OFF.
@@ -124,7 +124,7 @@ Settings are managed by a dedicated configuration module (`js/config.js`):
   {
     "serverEnabled": true,
     "host": "127.0.0.1",
-    "port": 41596,
+    "port": 41598,
     "accessRestrictionEnabled": false,
     "allowedClients": ["self"]
   }
@@ -170,7 +170,7 @@ An Obsidian plugin can integrate with Eagle Extra Links via two complementary pa
    async function addEagleExtraLink(itemId: string, url: string): Promise<boolean> {
        try {
            const response = await requestUrl({
-               url: `http://127.0.0.1:41596/api/item/${itemId}/links`,
+               url: `http://127.0.0.1:41598/api/item/${itemId}/links`,
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ url })

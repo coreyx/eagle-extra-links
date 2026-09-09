@@ -2,7 +2,7 @@
 
 This reference documents the REST IPC endpoints supported by the **Eagle Extra Links** plugin with **Title and URL Display Modes** (Schema Version 2).
 
-The embedded HTTP server runs inside Eagle and listens on `http://127.0.0.1:41596` by default (configurable via Settings).
+The embedded HTTP server runs inside Eagle and listens on `http://127.0.0.1:41598` by default (configurable via Settings).
 
 ---
 
@@ -32,7 +32,7 @@ Verifies server responsiveness and returns current host, port, and library infor
     "status": "ok",
     "version": "1.0.0",
     "host": "127.0.0.1",
-    "port": 41596,
+    "port": 41598,
     "library": "I:\\My Drive\\Eagle\\Main.library"
   }
   ```
@@ -86,7 +86,7 @@ Retrieves all stored links with their associated titles for an Eagle item.
 #### Examples
 **cURL**:
 ```bash
-curl -s http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links
+curl -s http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links
 ```
 
 ---
@@ -177,7 +177,7 @@ Accepts a structured link object with optional `title`, or a legacy URL string:
 #### Examples
 **cURL**:
 ```bash
-curl -X POST http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
+curl -X POST http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links \
      -H "Content-Type: application/json" \
      -d "{\"title\":\"Cyberpunk Reference\",\"url\":\"https://artstation.com/ref\"}"
 ```

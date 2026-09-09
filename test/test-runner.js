@@ -43,19 +43,19 @@ async function runTests() {
     const defaults = ConfigManager.getConfig();
     assert.strictEqual(defaults.serverEnabled, true);
     assert.strictEqual(defaults.host, '127.0.0.1');
-    assert.strictEqual(defaults.port, 41596);
+    assert.strictEqual(defaults.port, 41598);
     assert.strictEqual(defaults.accessRestrictionEnabled, false);
     assert.deepStrictEqual(defaults.allowedClients, ['self']);
 
     // Test port boundary validation
     const saved = ConfigManager.saveConfig({ port: 99999 });
-    assert.strictEqual(saved.port, 41596, 'Out of bounds port should fall back to default');
+    assert.strictEqual(saved.port, 41598, 'Out of bounds port should fall back to default');
 
-    const validPort = ConfigManager.saveConfig({ port: 41597 });
-    assert.strictEqual(validPort.port, 41597);
+    const validPort = ConfigManager.saveConfig({ port: 41599 });
+    assert.strictEqual(validPort.port, 41599);
 
     // Restore default port
-    ConfigManager.saveConfig({ port: 41596 });
+    ConfigManager.saveConfig({ port: 41598 });
     console.log('   ✓ ConfigManager tests passed.');
 
     // 2b. Test Drag & Drop Reorder Index Logic

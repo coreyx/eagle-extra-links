@@ -154,7 +154,7 @@ sequenceDiagram
     autonumber
     actor ObsidianUser as Obsidian User
     participant Obsidian as Obsidian Plugin
-    participant IPC as Eagle IPC Server (:41596)
+    participant IPC as Eagle IPC Server (:41598)
     participant Storage as StorageManager
     participant FS as extra-links.json
     participant Inspector as Eagle Inspector UI

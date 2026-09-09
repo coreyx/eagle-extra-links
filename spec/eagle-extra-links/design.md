@@ -6,7 +6,7 @@
 The **Eagle Extra Links** plugin architecture comprises four decoupled subsystems:
 1. **Inspector UI View**: The embedded WebView rendered within Eagle's right-hand Inspector panel.
 2. **State & Storage Manager**: The file I/O layer that reads and writes `extra-links.json` sidecar files inside Eagle item directories.
-3. **IPC Server**: A background Node.js HTTP server listening on loopback (`127.0.0.1:41596`) that handles incoming requests from external applications.
+3. **IPC Server**: A background Node.js HTTP server listening on loopback (`127.0.0.1:41598`) that handles incoming requests from external applications.
 4. **Obsidian Integration Client**: The external caller (e.g. an Obsidian plugin) that interfaces with the IPC server or reads/writes the sidecar files directly.
 
 ```mermaid
@@ -39,7 +39,7 @@ flowchart TB
     Storage_Manager -->|Atomic Read/Write| Sidecar_File
     IPC_Server -->|Update Metadata| Storage_Manager
     IPC_Server -.->|Live UI Refresh Event| Inspector_UI
-    Obsidian_Plugin -->|HTTP REST (Port 41596)| IPC_Server
+    Obsidian_Plugin -->|HTTP REST (Port 41598)| IPC_Server
     Obsidian_Plugin -.->|Direct Fallback Write| Sidecar_File
 ```
 
@@ -121,8 +121,8 @@ The Inspector UI is responsible for rendering the controls, responding to user i
 
             <div class="setting-item">
                 <label for="setting-port">Port (Required)</label>
-                <input type="number" id="setting-port" class="setting-input" value="41596" min="1024" max="65535" placeholder="41596">
-                <span class="setting-hint">Default: 41596 (Valid range: 1024–65535)</span>
+                <input type="number" id="setting-port" class="setting-input" value="41598" min="1024" max="65535" placeholder="41598">
+                <span class="setting-hint">Default: 41598 (Valid range: 1024–65535)</span>
             </div>
 
             <div class="setting-item">
@@ -212,7 +212,7 @@ The IPC Server enables seamless, cross-platform external communication without t
 
 #### Server Lifecycle:
 - **Initialization**: On plugin boot, reads configuration from `ConfigManager` (`js/config.js`).
-- **Conditional Startup**: If `serverEnabled === true`, binds to configured `host` (default `127.0.0.1`) and `port` (default `41596`).
+- **Conditional Startup**: If `serverEnabled === true`, binds to configured `host` (default `127.0.0.1`) and `port` (default `41598`).
 - **On/Off Toggle**: If `serverEnabled === false`, server does not listen. If toggled off while running, `server.close()` immediately terminates listening sockets.
 - **Dynamic Reconfiguration**: When user modifies host, port, or access rules in Settings, the server cleanly closes existing connections and re-binds with updated options.
 - **Graceful Shutdown**: Registers cleanup handlers on `eagle.onPluginBeforeExit` or window unload to close the port cleanly.
@@ -416,7 +416,7 @@ sequenceDiagram
     autonumber
     actor ObsidianUser as Obsidian User
     participant Obsidian as Obsidian Plugin
-    participant IPC as Eagle Plugin IPC Server (Port 41596)
+    participant IPC as Eagle Plugin IPC Server (Port 41598)
     participant Storage as Storage Manager
     participant FS as extra-links.json
     participant Inspector as Eagle Inspector UI
@@ -483,7 +483,7 @@ sequenceDiagram
 ## 5. Error Handling & Safety Measures
 
 1. **Port Collision Protection**:
-   If port `41596` is already occupied by an existing process, the IPC server attempts to bind to `41597` or logs a descriptive notice without crashing the Inspector UI.
+   If port `41598` is already occupied by an existing process, the IPC server attempts to bind to `41597` or logs a descriptive notice without crashing the Inspector UI.
 2. **Safe URL Launching**:
    Before calling `eagle.shell.openExternal`, input strings are trimmed and validated to have an acceptable protocol scheme (`http:`, `https:`, `obsidian:`, `notion:`, `file:`). Unsupported or potentially malicious script injection protocols (e.g. `javascript:`) are safely rejected.
 3. **Atomic File Replacement**:

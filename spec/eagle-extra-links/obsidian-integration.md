@@ -7,7 +7,7 @@ This guide provides drop-in TypeScript and JavaScript integration code for Obsid
 ## 1. Overview of Integration Patterns
 
 An Obsidian plugin can interact with Eagle Extra Links via two complementary paths:
-1. **Primary: Embedded HTTP REST IPC (`127.0.0.1:41596`)**:
+1. **Primary: Embedded HTTP REST IPC (`127.0.0.1:41598`)**:
    - Works across Windows and macOS without native dependencies.
    - Triggers real-time UI updates inside Eagle's Inspector if the asset is currently selected.
    - Built using Obsidian's native `requestUrl` method.
@@ -34,7 +34,7 @@ export interface EagleExtraLinksResponse {
 export class EagleExtraLinksClient {
     private baseUrl: string;
 
-    constructor(host: string = '127.0.0.1', port: number = 41596) {
+    constructor(host: string = '127.0.0.1', port: number = 41598) {
         this.baseUrl = `http://${host}:${port}`;
     }
 

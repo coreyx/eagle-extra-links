@@ -17,6 +17,10 @@
 - Dropping a row splices both `currentLinks` and `rowModes` in lockstep, preserving active Title (`T`) and URL (`U`) display states.
 - Saves immediately to `extra-links.json` without debounce delay.
 
+### 4. Default Port Migrated to 41598
+- The default REST IPC server port is now `41598` (previously `41596`) to eliminate port collisions with Eagle's official `mcp-server` plugin (which runs on port `41596`).
+- Integrated automated CLI testing tool `test-push-link.js` with port conflict detection and smart Eagle item auto-discovery.
+
 ---
 
 ## Release Notes: v1.1.0 (Title and URL Display Modes)

@@ -16,7 +16,7 @@ When Obsidian renders an Eagle item card or embeds backlinks, it can fetch the l
 ```typescript
 async function getSortedLinks(eagleItemId: string): Promise<Array<{ title: string; url: string }>> {
   const response = await requestUrl({
-    url: `http://127.0.0.1:41596/api/links?id=${eagleItemId}`,
+    url: `http://127.0.0.1:41598/api/links?id=${eagleItemId}`,
     method: 'GET',
   });
   return response.json.links; // Preserves exact drag-and-drop order
@@ -39,7 +39,7 @@ async function addBacklink(eagleItemId: string, noteTitle: string, noteUid: stri
   const backlinkUrl = `obsidian://adv-uri?vault=MyVault&uid=${noteUid}`;
   
   await requestUrl({
-    url: 'http://127.0.0.1:41596/api/links',
+    url: 'http://127.0.0.1:41598/api/links',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -69,7 +69,7 @@ async function sortLinksAlphabetically(eagleItemId: string) {
   });
 
   await requestUrl({
-    url: 'http://127.0.0.1:41596/api/links',
+    url: 'http://127.0.0.1:41598/api/links',
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

@@ -15,7 +15,7 @@ const IpcServer = {
     serverInstance: null,
     isRunning: false,
     activeHost: '127.0.0.1',
-    activePort: 41596,
+    activePort: 41598,
     _uiUpdateListeners: [],
     _startPromise: null,
 
@@ -117,7 +117,7 @@ const IpcServer = {
             }
 
             this.activeHost = config.host || '127.0.0.1';
-            this.activePort = config.port || 41596;
+            this.activePort = config.port || 41598;
 
             const server = http.createServer(async (req, res) => {
                 // 1. IP Access Control Validation

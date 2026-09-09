@@ -6,7 +6,7 @@
 const DEFAULT_CONFIG = {
     serverEnabled: true,
     host: '127.0.0.1',
-    port: 41596,
+    port: 41598,
     accessRestrictionEnabled: false,
     allowedClients: ['self']
 };

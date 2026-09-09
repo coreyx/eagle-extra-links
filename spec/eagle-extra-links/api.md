@@ -8,9 +8,9 @@ This document is the complete, standalone REST API reference for the **Eagle Ext
 
 ### 1.1 Base URL & Default Binding
 The embedded IPC server runs directly within the Eagle Extra Links plugin process:
-- **Default Base URL**: `http://127.0.0.1:41596`
+- **Default Base URL**: `http://127.0.0.1:41598`
 - **Configurable Host**: Defaults to `127.0.0.1` (loopback). Can be configured to `0.0.0.0` or a specific LAN IP in settings to accept connections from other devices on your local network.
-- **Configurable Port**: Defaults to `41596`. Configurable in settings (`1024–65535`).
+- **Configurable Port**: Defaults to `41598`. Configurable in settings (`1024–65535`).
 - **Feature Toggle**: Can be enabled or disabled completely via the plugin's settings interface (`⚙️`).
 
 ### 1.2 Access Control & Security
@@ -58,7 +58,7 @@ Verifies that the Eagle Extra Links IPC server is active, returns runtime versio
     "status": "ok",
     "version": "1.0.0",
     "host": "127.0.0.1",
-    "port": 41596,
+    "port": 41598,
     "library": "I:\\My Drive\\Eagle\\Main.library"
   }
   ```
@@ -69,12 +69,12 @@ Verifies that the Eagle Extra Links IPC server is active, returns runtime versio
 #### Examples
 **cURL**:
 ```bash
-curl -s http://127.0.0.1:41596/health
+curl -s http://127.0.0.1:41598/health
 ```
 
 **JavaScript / Obsidian**:
 ```javascript
-const res = await requestUrl({ url: 'http://127.0.0.1:41596/health' });
+const res = await requestUrl({ url: 'http://127.0.0.1:41598/health' });
 console.log(res.json);
 ```
 
@@ -119,13 +119,13 @@ Retrieves the list of extra URLs/URIs associated with a specific Eagle content i
 #### Examples
 **cURL**:
 ```bash
-curl -s http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links
+curl -s http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links
 ```
 
 **JavaScript / Obsidian**:
 ```javascript
 const res = await requestUrl({
-    url: 'http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links',
+    url: 'http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links',
     method: 'GET'
 });
 console.log(res.json.links);
@@ -214,7 +214,7 @@ Accepts either a single URL or an array of URLs, with an optional `allowDuplicat
 #### Examples
 **cURL**:
 ```bash
-curl -X POST http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
+curl -X POST http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links \
      -H "Content-Type: application/json" \
      -d "{\"url\":\"obsidian://adv-uri?vault=Main&filepath=Design%2FInspiration.md\"}"
 ```
@@ -222,7 +222,7 @@ curl -X POST http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
 **JavaScript / Obsidian**:
 ```javascript
 const res = await requestUrl({
-    url: 'http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links',
+    url: 'http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -281,7 +281,7 @@ Replaces the entire list of extra links for an item with a new array.
 #### Examples
 **cURL**:
 ```bash
-curl -X PUT http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
+curl -X PUT http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links \
      -H "Content-Type: application/json" \
      -d "{\"links\":[\"https://example.com\",\"obsidian://adv-uri?vault=Main\"]}"
 ```
@@ -340,7 +340,7 @@ Empty body `{}` or empty request clears all extra links.
 **cURL**:
 ```bash
 # Delete row at index 0:
-curl -X DELETE http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
+curl -X DELETE http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links \
      -H "Content-Type: application/json" \
      -d "{\"index\": 0}"
 ```

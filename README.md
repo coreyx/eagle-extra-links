@@ -63,7 +63,7 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
   - Matches Eagle's built-in inspector styling with pixel precision.
   - Automatically updates colors in real time across all 6 Eagle themes: `DARK`, `GRAY`, `LIGHT`, `LIGHTGRAY`, `BLUE`, and `PURPLE`.
 - 🌐 **Embedded HTTP REST IPC Server**:
-  - Operates a local HTTP server on port `41596` (configurable).
+  - Operates a local HTTP server on port `41598` (configurable).
   - Programmatically query, append, replace, or delete links from external tools like Obsidian, Raycast, Alfred, or custom CLI scripts.
   - **Real-Time UI Synchronization**: When an external script modifies links via IPC, the Eagle Inspector immediately updates live without requiring you to reselect the asset.
 - 🔁 **Automatic Deduplication & Idempotent POST**:
@@ -130,7 +130,7 @@ Click the gear icon (`⚙️`) in the header to open the **IPC Server Settings**
 | :--- | :--- | :--- |
 | **Enable IPC Server** | `true` (On) | Toggle HTTP server on or off completely |
 | **Bind Host / IP** | `127.0.0.1` | Host address to bind (`127.0.0.1` for local, `0.0.0.0` for LAN) |
-| **Port** | `41596` | Port number to listen on (range: `1024`–`65535`) |
+| **Port** | `41598` | Port number to listen on (range: `1024`–`65535`) |
 | **Restrict Client Access** | `false` (Off) | Restrict incoming connections to specific IPs or hostnames |
 | **Allowed Clients** | `self` | Comma-separated whitelist (supports exact IP, `self`, `192.168.1.x` wildcards) |
 
@@ -140,7 +140,7 @@ Click the gear icon (`⚙️`) in the header to open the **IPC Server Settings**
 
 ## 📡 REST API Reference
 
-The plugin embeds an HTTP REST server listening on `http://127.0.0.1:41596`.
+The plugin embeds an HTTP REST server listening on `http://127.0.0.1:41598`.
 
 ### Endpoints Overview
 
@@ -156,7 +156,7 @@ The plugin embeds an HTTP REST server listening on `http://127.0.0.1:41596`.
 
 #### 1. Retrieve Links
 ```bash
-curl -s http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links
+curl -s http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links
 ```
 **Response (200 OK)**:
 ```json
@@ -178,7 +178,7 @@ curl -s http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links
 
 #### 2. Append Link with Title (Idempotent)
 ```bash
-curl -X POST http://127.0.0.1:41596/api/item/MTSPUNN17LBUG/links \
+curl -X POST http://127.0.0.1:41598/api/item/MTSPUNN17LBUG/links \
      -H "Content-Type: application/json" \
      -d '{"title": "Obsidian Note", "url": "obsidian://adv-uri?vault=Main&uid=db4d22f3"}'
 ```
@@ -230,7 +230,7 @@ app.workspace.on('editor-paste', async (evt: ClipboardEvent, editor: Editor, vie
         // Naively POST without pre-checking:
         // Eagle Extra Links automatically deduplicates and displays the note title!
         await requestUrl({
-            url: `http://127.0.0.1:41596/api/item/${eagleItemId}/links`,
+            url: `http://127.0.0.1:41598/api/item/${eagleItemId}/links`,
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: noteTitle, url: backlinkUri })
@@ -320,7 +320,7 @@ Or via PowerShell:
 | `--title <title>` | `-t` | Link title (human-readable label) | Interactive prompt |
 | `--url <url>` | `-u` | Target URL, web address, or deep link URI | Interactive prompt |
 | `--id <itemId>` | `-i` | Target Eagle Item ID | Auto-detected from Eagle |
-| `--port <port>` | `-p` | Extra Links REST IPC port | `41596` (auto-scans if busy) |
+| `--port <port>` | `-p` | Extra Links REST IPC port | `41598` (auto-scans if busy) |
 | `--host <host>` | `-H` | Host address | `127.0.0.1` |
 | `--standalone` | `-s` | Run in-process test server (no Eagle plugin required) | `false` |
 | `--allow-duplicates` | `-d` | Explicitly permit duplicate URLs | `false` (idempotent) |
@@ -353,7 +353,7 @@ node test-push-link.js --standalone --title "Documentation" --url "https://eagle
 #### Pro-Tips & Troubleshooting
 
 - **Smart Item Auto-Discovery**: If you don't supply an `--id`, the script queries Eagle Core's API (`http://127.0.0.1:41595/api/item/list`) to automatically locate the latest item in your open library.
-- **Port Conflict Detection**: Eagle's official `mcp-server` plugin defaults to port `41596`. If `test-push-link.js` detects `mcp-server` on 41596, it warns you and scans alternate ports (`41598`, `41599`, `41600`, `41605`). If you have `mcp-server` installed, open Extra Links settings (`⚙️`) in Eagle and set the port to `41598`.
+- **Port Conflict Protection**: Default port is `41598` to guarantee zero collisions with Eagle Core (`41595`), Eagle's official `mcp-server` (`41596`), or `ai-sdk` (`41597`). If port 41598 is busy, the script automatically scans alternate ports (`41599`, `41600`, `41605`).
 - **Idempotency & Title Enrichment**: Running the script with an existing URL will not duplicate the link. If the existing link previously had a blank title, sending a new title will automatically enrich it in-place!
 - **Safe Termination**: The script disables HTTP socket keep-alive (`agent: false`, `Connection: close`) and terminates cleanly (`process.exit(0)`) so it never hangs in scripts or CI.
 

@@ -451,7 +451,7 @@
 
         settingServerEnabled.checked = config.serverEnabled;
         settingHost.value = config.host || '127.0.0.1';
-        settingPort.value = config.port || 41596;
+        settingPort.value = config.port || 41598;
         settingRestrictAccess.checked = config.accessRestrictionEnabled;
         settingAllowedClients.value = (config.allowedClients || ['self']).join(', ');
 
@@ -485,7 +485,7 @@
         const host = settingHost.value.trim() || '127.0.0.1';
         let port = parseInt(settingPort.value, 10);
         if (isNaN(port) || port < 1024 || port > 65535) {
-            port = 41596;
+            port = 41598;
         }
 
         const accessRestrictionEnabled = settingRestrictAccess.checked;

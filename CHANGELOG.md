@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automated Testing**:
   - Unit tests added to `test/test-runner.js` for DnD drop index calculation logic and disk persistence of sorted lists.
 
+### Changed
+- **Default IPC Port Migration**:
+  - Changed default REST IPC server port from `41596` to `41598` to eliminate port conflict with Eagle's official `mcp-server` plugin (which defaults to `41596`).
+  - Added startup promise coalescing and guarded config change listeners in `IpcServer` to prevent duplicate listen attempts.
+  - Added CLI test tool `test-push-link.js` and `test-push-link.ps1`.
+
 ## [1.1.0] - 2026-09-08
 
 ### Added

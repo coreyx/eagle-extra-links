@@ -28,7 +28,7 @@ export interface EagleExtraLinksResponse {
 export class EagleExtraLinksClient {
     private baseUrl: string;
 
-    constructor(host: string = '127.0.0.1', port: number = 41596) {
+    constructor(host: string = '127.0.0.1', port: number = 41598) {
         this.baseUrl = `http://${host}:${port}`;
     }
 

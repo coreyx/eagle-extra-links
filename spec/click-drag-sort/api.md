@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The embedded REST API (running on port `41596`) exposes endpoints for reading and mutating extra links. This document specifies how link ordering is handled across all HTTP methods.
+The embedded REST API (running on port `41598`) exposes endpoints for reading and mutating extra links. This document specifies how link ordering is handled across all HTTP methods.
 
 ---
 

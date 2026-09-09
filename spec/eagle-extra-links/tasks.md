@@ -122,7 +122,7 @@ This checklist outlines the concrete implementation tasks for developing the **E
   - **Ref**: `REQ-6`, `AC-6.1`, `AC-6.4`, `AC-6.5`, `AC-6.7`, `REQ-9`, `AC-9.2`, `AC-9.3`, `AC-9.4`, `AC-9.10`
   - **Steps**:
     1. Create `js/ipc-server.js` utilizing Node.js native `http` module.
-    2. Read host and port configuration from `ConfigManager` (defaulting to `127.0.0.1` and `41596`).
+    2. Read host and port configuration from `ConfigManager` (defaulting to `127.0.0.1` and `41598`).
     3. Implement conditional startup: if `serverEnabled` is false, do not bind ports; if true, bind to configured host and port.
     4. Implement dynamic restart/rebind function (`restartServer(config)`) to apply settings updates without reloading the plugin.
     5. Implement CORS headers for all responses (`Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: *`, `Access-Control-Allow-Headers: *`).
@@ -148,7 +148,7 @@ This checklist outlines the concrete implementation tasks for developing the **E
   - **Ref**: `REQ-9`, `AC-9.1`, `AC-9.2`, `AC-9.3`, `AC-9.4`, `AC-9.5`, `AC-9.6`, `AC-9.9`
   - **Steps**:
     1. Create `js/config.js` to manage reading/writing settings from `localStorage` with defaults:
-       `{ serverEnabled: true, host: '127.0.0.1', port: 41596, accessRestrictionEnabled: false, allowedClients: ['self'] }`.
+       `{ serverEnabled: true, host: '127.0.0.1', port: 41598, accessRestrictionEnabled: false, allowedClients: ['self'] }`.
     2. Add `#settings-btn` gear button in header.
     3. Build `#settings-modal` in `index.html` with:
        - Server Enable toggle.
@@ -215,7 +215,7 @@ This checklist outlines the concrete implementation tasks for developing the **E
 - [x] **TASK-15: Verify IPC REST API, Configuration & Access Control**
   - **Ref**: `REQ-6`, `AC-6.1`, `AC-6.2`, `AC-6.3`, `AC-6.4`, `AC-6.5`, `REQ-9`, `AC-9.1` – `AC-9.9`
   - **Steps**:
-    1. Run `curl http://127.0.0.1:41596/health` and verify 200 OK response with version, host, and port.
+    1. Run `curl http://127.0.0.1:41598/health` and verify 200 OK response with version, host, and port.
     2. Test server toggle: turn server OFF in settings modal, apply; verify `curl` connection is refused. Turn server back ON, verify it responds.
     3. Test custom port: change port to `41597` in settings modal, apply; verify `curl http://127.0.0.1:41597/health` succeeds.
     4. Test access restriction:
@@ -223,6 +223,6 @@ This checklist outlines the concrete implementation tasks for developing the **E
        - Add non-matching rule (e.g. `10.0.0.1`). Verify loopback request is rejected with HTTP 403 Forbidden.
        - Add `127.0.0.1` and `::1`. Verify loopback request is permitted again.
        - Test wildcard range `192.168.1.x` and verify subnet regex match.
-    5. Send `POST http://127.0.0.1:41596/api/item/:id/links` with a test Obsidian link.
+    5. Send `POST http://127.0.0.1:41598/api/item/:id/links` with a test Obsidian link.
     6. Verify response contains updated link array and `extra-links.json` is updated on disk.
     7. While the item is visible in Eagle, send another POST request and verify the UI updates instantly in real time.

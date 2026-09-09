@@ -128,7 +128,7 @@ Requirements are specified using the **Easy Approach to Requirements Syntax (EAR
 **User Story:**
 *As an Obsidian user, I want my Obsidian plugin to programmatically add URLs (such as Obsidian note links) to any Eagle item by its `itemId` over a reliable, cross-platform IPC interface.*
 
-- **6.1 (Ubiquitous):** The plugin shall operate an embedded HTTP REST server listening on localhost loopback (`127.0.0.1:41596`).
+- **6.1 (Ubiquitous):** The plugin shall operate an embedded HTTP REST server listening on localhost loopback (`127.0.0.1:41598`).
 - **6.2 (Event-driven):** When an external client sends a `GET /api/item/:itemId/links` request, the server shall return a JSON payload containing the array of extra links for that item.
 - **6.3 (Event-driven):** When an external client sends a `POST /api/item/:itemId/links` request with a JSON payload `{ "url": "<url-string>" }`, the server shall append the URL to that item's metadata and return HTTP status 200/201.
 - **6.4 (Event-driven):** When an external client sends a `PUT /api/item/:itemId/links` request with `{ "links": ["url1", "url2"] }`, the server shall replace the item's extra links array and return HTTP status 200.
@@ -138,11 +138,11 @@ Requirements are specified using the **Easy Approach to Requirements Syntax (EAR
 - **6.8 (Ubiquitous):** The plugin shall automatically check for and prevent duplicate links when appending URLs via IPC, ensuring that duplicate requests for the same URL on an item are idempotent.
 
 #### Acceptance Criteria
-- **AC-6.1:** `GET http://127.0.0.1:41596/health` returns `{"status":"ok","version":"1.0.0"}`.
-- **AC-6.2:** `POST http://127.0.0.1:41596/api/item/:itemId/links` adds the link to `extra-links.json`.
+- **AC-6.1:** `GET http://127.0.0.1:41598/health` returns `{"status":"ok","version":"1.0.0"}`.
+- **AC-6.2:** `POST http://127.0.0.1:41598/api/item/:itemId/links` adds the link to `extra-links.json`.
 - **AC-6.3:** If Eagle is currently displaying `:itemId` in the Inspector, the new URL appears in the Inspector panel without requiring a deselect/reselect cycle.
 - **AC-6.4:** Requests include standard CORS headers (`Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS`) to allow unblocked `fetch` calls from Obsidian's Electron renderer.
-- **AC-6.5:** The IPC server handles port conflict gracefully (e.g., logging an informative error if port 41596 is bound by another process).
+- **AC-6.5:** The IPC server handles port conflict gracefully (e.g., logging an informative error if port 41598 is bound by another process).
 - **AC-6.8:** When `POST /api/item/:itemId/links` is called with a URL that is already associated with that item (comparing trimmed strings), the plugin does not insert a duplicate, preserves existing links, and returns HTTP 200 with `alreadyExists: true` and `addedCount: 0`.
 
 ---
@@ -186,7 +186,7 @@ Requirements are specified using the **Easy Approach to Requirements Syntax (EAR
 - **9.2 (Optional Feature):** Where the user does not require external integrations, the plugin shall allow toggling the IPC server feature completely ON or OFF (enabled by default).
 - **9.3 (State-driven):** While the IPC server toggle is OFF, the plugin shall shut down the HTTP server and release any bound network ports.
 - **9.4 (Ubiquitous):** The plugin shall allow configuring the bind hostname or IP address, defaulting to `127.0.0.1` (required).
-- **9.5 (Ubiquitous):** The plugin shall allow configuring the listen port number, defaulting to `41596` (required, valid range 1024–65535).
+- **9.5 (Ubiquitous):** The plugin shall allow configuring the listen port number, defaulting to `41598` (required, valid range 1024–65535).
 - **9.6 (Optional Feature):** Where the user requires access control, the plugin shall provide an optional access restriction feature (defaulted to OFF).
 - **9.7 (State-driven):** While access restriction is enabled, the plugin shall validate incoming client connections against a user-configurable whitelist supporting exact IPs, IP ranges/wildcards (e.g. `192.168.1.x` or `192.168.1.*`), hostnames, or the `'self'` alias (representing loopback addresses `127.0.0.1` and `::1`).
 - **9.8 (Ubiquitous):** When access restriction is enabled, the plugin shall suggest `'self'` as the initial preset, alongside quick-selection suggestions for `127.0.0.1`, `::1`, and `192.168.1.x`.
@@ -197,7 +197,7 @@ Requirements are specified using the **Easy Approach to Requirements Syntax (EAR
 - **AC-9.1:** Clicking the settings icon (`⚙️`) opens a settings drawer/modal displaying: Server On/Off toggle, Bind Host/IP, Port, and Access Restriction controls.
 - **AC-9.2:** Switching the server toggle to OFF immediately closes the listening port (`server.close()`). `GET /health` requests will be refused by the OS.
 - **AC-9.3:** The bind address input is required and defaults to `127.0.0.1`. Entering `0.0.0.0` allows connections from local network devices.
-- **AC-9.4:** The port input is required, defaults to `41596`, and rejects values outside the `1024-65535` range.
+- **AC-9.4:** The port input is required, defaults to `41598`, and rejects values outside the `1024-65535` range.
 - **AC-9.5:** Access restriction toggle defaults to OFF (allowing any client that can reach the bound interface, which is loopback-only by default).
 - **AC-9.6:** Turning access restriction ON pre-fills `'self'` and displays clickable suggestion chips for `self`, `127.0.0.1`, `::1`, and `192.168.1.x`.
 - **AC-9.7:** Entering `192.168.1.x` or `192.168.1.*` correctly matches any client in the `192.168.1.0/24` subnet.

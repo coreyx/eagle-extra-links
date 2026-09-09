@@ -37,7 +37,7 @@ function parseArgs() {
     const args = process.argv.slice(2);
     const options = {
         host: '127.0.0.1',
-        port: 41596,
+        port: 41598,
         id: null,
         title: null,
         url: null,
@@ -87,7 +87,7 @@ ${c.bold}OPTIONS:${c.reset}
   -i, --id <itemId>            Eagle item ID (auto-detected from Eagle if omitted)
   -t, --title <title>          Link title (e.g. "Project Specs")
   -u, --url <url>              Link URL / URI (e.g. "https://..." or "obsidian://...")
-  -p, --port <port>            Extra Links IPC port (default: 41596)
+  -p, --port <port>            Extra Links IPC port (default: 41598)
   -H, --host <host>            Extra Links IPC host (default: 127.0.0.1)
   -d, --allow-duplicates       Explicitly permit duplicate links
   -s, --standalone             Start a standalone in-process server for immediate testing
@@ -240,7 +240,7 @@ async function checkServerHealth(host, port) {
 
 // Scan common alternate ports
 async function findActivePort(host, preferredPort) {
-    const candidatePorts = [preferredPort, 41598, 41599, 41600, 41605, 41596];
+    const candidatePorts = [preferredPort, 41598, 41599, 41600, 41605];
     const checked = new Set();
 
     for (const port of candidatePorts) {
