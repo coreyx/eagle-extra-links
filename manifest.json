@@ -4,14 +4,22 @@
     "platform": "all",
     "arch": "all",
     "name": "Extra Links",
+    "description": "Attach multiple clickable URLs, URIs, and Obsidian links to Eagle content items with IPC support.",
     "logo": "/logo.png",
-    "keywords": [],
+    "keywords": [
+        "url",
+        "link",
+        "links",
+        "obsidian",
+        "inspector",
+        "references"
+    ],
     "devTools": true,
     "preview": {
-        "jpg,png": {
+        "jpg,jpeg,png,gif,webp,bmp,tif,tiff,svg,ai,eps,pdf,txt,md,mp4,mov,avi,webm,mkv,mp3,wav,m4a,flac,aac,url,webloc,html": {
             "inspector": {
                 "path": "index.html",
-                "height": 100,
+                "height": 140,
                 "multiSelect": false
             }
         }
