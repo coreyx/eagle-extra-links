@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added startup promise coalescing and guarded config change listeners in `IpcServer` to prevent duplicate listen attempts.
   - Added CLI test tool `test-push-link.js` and `test-push-link.ps1`.
 
+### Fixed
+- **Empty Slot Lingering When Pushing Links**:
+  - Fixed an issue where deleting the last link in an item persisted an empty placeholder `{ title: "", url: "" }` to `extra-links.json` instead of `[]`.
+  - Updated `StorageManager.appendLink()` to automatically filter out completely empty placeholder links (`!url && !title`), ensuring that pushing a link to an empty item or an item with unpopulated placeholders populates slot 0 without creating an unwanted second slot.
+  - Updated real-time IPC update handler in `app.js` to reset row modes so pushed links with titles automatically default to Title mode per REQ-11.1.
+
 ## [1.1.0] - 2026-09-08
 
 ### Added

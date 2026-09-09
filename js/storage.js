@@ -147,9 +147,13 @@ const StorageManager = {
      * @returns {Promise<{ links: Array<{ title: string, url: string }>, addedCount: number, alreadyExists: boolean }>}
      */
     async appendLink(itemId, newEntries, allowDuplicates = false) {
-        const currentLinks = await this.loadLinks(itemId);
+        let currentLinks = await this.loadLinks(itemId);
         const entriesToAdd = (Array.isArray(newEntries) ? newEntries : [newEntries])
-            .map(e => this.normalizeLink(e));
+            .map(e => this.normalizeLink(e))
+            .filter(e => e.url.trim().length > 0 || e.title.trim().length > 0);
+
+        // Filter out completely empty placeholder links (!url && !title) so unpopulated slots don't linger
+        currentLinks = currentLinks.filter(l => l.url.trim().length > 0 || l.title.trim().length > 0);
         
         let addedCount = 0;
         let anyAlreadyExisted = false;

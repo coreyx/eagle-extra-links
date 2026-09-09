@@ -123,23 +123,23 @@ async function runTests() {
         const loadedLinks = await StorageManager.loadLinks('MTSPUNN17LBUG');
         assert.deepStrictEqual(loadedLinks, testLinks, 'Loaded links must match saved links including empty fields');
 
-        // Test append with title
+        // Test append with title (cleans up empty placeholder at index 2)
         const appendRes1 = await StorageManager.appendLink('MTSPUNN17LBUG', {
             title: 'Second Site',
             url: 'https://second-url.com'
         });
-        assert.strictEqual(appendRes1.links.length, 4);
+        assert.strictEqual(appendRes1.links.length, 3, 'Empty placeholder slot must be cleaned up on append');
         assert.strictEqual(appendRes1.addedCount, 1);
         assert.strictEqual(appendRes1.alreadyExists, false);
-        assert.strictEqual(appendRes1.links[3].title, 'Second Site');
-        assert.strictEqual(appendRes1.links[3].url, 'https://second-url.com');
+        assert.strictEqual(appendRes1.links[2].title, 'Second Site');
+        assert.strictEqual(appendRes1.links[2].url, 'https://second-url.com');
 
         // Test duplicate append (should NOT duplicate)
         const appendResDuplicate = await StorageManager.appendLink('MTSPUNN17LBUG', {
             title: 'Duplicate Title',
             url: '  https://second-url.com  '
         });
-        assert.strictEqual(appendResDuplicate.links.length, 4, 'Duplicate URL must not increase links length');
+        assert.strictEqual(appendResDuplicate.links.length, 3, 'Duplicate URL must not increase links length');
         assert.strictEqual(appendResDuplicate.addedCount, 0, 'Duplicate append must report addedCount 0');
         assert.strictEqual(appendResDuplicate.alreadyExists, true, 'Duplicate append must report alreadyExists true');
 
@@ -164,6 +164,22 @@ async function runTests() {
         const removed = await StorageManager.removeLinkByIndex('MTSPUNN17LBUG', 1);
         assert.strictEqual(removed.length, 1);
         assert.strictEqual(removed[0].url, 'https://example.com/test');
+
+        // Test removing the last remaining link (should result in empty array, not placeholder)
+        const removedLast = await StorageManager.removeLinkByIndex('MTSPUNN17LBUG', 0);
+        assert.strictEqual(removedLast.length, 0, 'Removing last link must result in empty array');
+        const emptyLoaded = await StorageManager.loadLinks('MTSPUNN17LBUG');
+        assert.strictEqual(emptyLoaded.length, 0, 'Storage file must contain empty links array');
+
+        // Test appending to an item with an empty placeholder slot (e.g. legacy or empty UI state)
+        await StorageManager.saveLinks('MTSPUNN17LBUG', [{ title: '', url: '' }]);
+        const appendToEmpty = await StorageManager.appendLink('MTSPUNN17LBUG', {
+            title: 'First Actual Link',
+            url: 'https://first-actual.com'
+        });
+        assert.strictEqual(appendToEmpty.links.length, 1, 'Appending to empty slot must yield exactly 1 slot without extra empty row');
+        assert.strictEqual(appendToEmpty.links[0].title, 'First Actual Link');
+        assert.strictEqual(appendToEmpty.links[0].url, 'https://first-actual.com');
 
         // Test Link Reordering & Persistence (Click & Drag Sort)
         const reorderSource = [

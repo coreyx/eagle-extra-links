@@ -425,8 +425,11 @@
         if (pendingDeleteIndex !== null && pendingDeleteIndex >= 0 && pendingDeleteIndex < currentLinks.length) {
             currentLinks.splice(pendingDeleteIndex, 1);
             rowModes.splice(pendingDeleteIndex, 1);
+
+            // Filter out completely empty entries when determining what to persist to storage
+            const linksToSave = currentLinks.filter(l => (l.url && l.url.trim().length > 0) || (l.title && l.title.trim().length > 0));
             
-            // If all fields were deleted, re-initialize with single empty field (AC-4.5)
+            // If all fields were deleted, re-initialize with single empty field for UI view (AC-4.5)
             if (currentLinks.length === 0) {
                 currentLinks = [{ title: '', url: '' }];
                 rowModes = ['url'];
@@ -437,7 +440,7 @@
 
             if (currentItem) {
                 setStatus('saving');
-                const success = await StorageManager.saveLinks(currentItem.id, currentLinks, currentItem);
+                const success = await StorageManager.saveLinks(currentItem.id, linksToSave, currentItem);
                 setStatus(success ? 'saved' : 'error');
             }
         }
@@ -564,6 +567,7 @@
     // Handle real-time updates from IPC server
     IpcServer.onItemUpdated((itemId, updatedLinks) => {
         if (currentItem && currentItem.id === itemId) {
+            rowModes = [];
             renderLinks(updatedLinks);
         }
     });
