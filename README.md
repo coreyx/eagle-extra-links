@@ -57,6 +57,7 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
 - 🛡️ **Safe, Atomic Sidecar Storage**:
   - Stored inside each item's `.info` folder at `<LibraryPath>/images/<itemId>.info/extra-links.json`.
   - Never touches or risks corrupting Eagle's internal `metadata.json`.
+  - Preserved in Trash: sidecar data stays with the asset and reappears automatically when restored from Eagle's Trash.
   - Atomic writes (`.tmp` staging file -> rename) prevent file loss during unexpected power loss or crashes.
   - Automatic migration: seamlessly loads legacy Version 1 string arrays and upgrades to Schema Version 2.
 - 🎨 **Native Theme Adaptation**:
@@ -119,6 +120,10 @@ Double-click the exported `.eagleplugin` package to install directly into Eagle.
 - Release the mouse button to drop. The links immediately reorder and save to disk, preserving each link's active Title/URL display mode.
 - Selecting, double-clicking, or highlighting text inside the input box never triggers a drag.
 - When an item has only a single link row, the drag handle is automatically dimmed and disabled.
+
+### 🗑️ Items in Eagle's Trash
+> [!NOTE]
+> Extra links will not be shown when a content item is in the **Trash** in Eagle due to what seems like an Eagle limitation (Eagle does not render custom Inspector plugins for trashed assets). However, the sidecar data in `extra-links.json` remains safely stored with the item inside its `.info` directory and will be displayed again as soon as the item is restored.
 
 ---
 
