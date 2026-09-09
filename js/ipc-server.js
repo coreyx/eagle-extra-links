@@ -17,6 +17,7 @@ const IpcServer = {
     activeHost: '127.0.0.1',
     activePort: 41596,
     _uiUpdateListeners: [],
+    _startPromise: null,
 
     /**
      * Registers a listener for when an item is updated via IPC.
@@ -96,19 +97,22 @@ const IpcServer = {
      * @returns {Promise<boolean>}
      */
     start() {
-        return new Promise((resolve) => {
+        if (this._startPromise) {
+            return this._startPromise;
+        }
+
+        if (this.serverInstance) {
+            console.log('[IpcServer] Server is already running.');
+            return Promise.resolve(true);
+        }
+
+        this._startPromise = new Promise((resolve) => {
             const config = Config.getConfig();
 
             if (!config.serverEnabled) {
                 console.log('[IpcServer] Server is disabled in configuration.');
                 this.isRunning = false;
                 resolve(false);
-                return;
-            }
-
-            if (this.serverInstance) {
-                console.log('[IpcServer] Server is already running.');
-                resolve(true);
                 return;
             }
 
@@ -301,7 +305,11 @@ const IpcServer = {
                 this.isRunning = true;
                 resolve(true);
             });
+        }).finally(() => {
+            this._startPromise = null;
         });
+
+        return this._startPromise;
     },
 
     /**
@@ -311,6 +319,9 @@ const IpcServer = {
     stop() {
         return new Promise((resolve) => {
             if (this.serverInstance) {
+                if (typeof this.serverInstance.closeAllConnections === 'function') {
+                    this.serverInstance.closeAllConnections();
+                }
                 this.serverInstance.close(() => {
                     console.log('[IpcServer] Server stopped.');
                     this.serverInstance = null;
@@ -336,6 +347,10 @@ const IpcServer = {
 
 // Listen for config changes and restart server selectively when host, port, or enabled state changes
 Config.onConfigChanged((newConfig) => {
+    // Only restart if the server is currently running or actively starting
+    if (!IpcServer.isRunning && !IpcServer.serverInstance && !IpcServer._startPromise) {
+        return;
+    }
     const hostChanged = newConfig.host !== IpcServer.activeHost;
     const portChanged = newConfig.port !== IpcServer.activePort;
     const stateChanged = Boolean(newConfig.serverEnabled) !== IpcServer.isRunning;
