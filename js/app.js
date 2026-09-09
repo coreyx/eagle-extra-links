@@ -9,6 +9,7 @@
     let currentLinks = [];
     let rowModes = [];
     let pendingDeleteIndex = null;
+    let draggedIndex = null;
     const debouncedSaver = StorageManager.createDebouncedSaver(300);
 
     // DOM Elements
@@ -35,6 +36,7 @@
     const chipBtns = document.querySelectorAll('.chip-btn');
 
     // SVG Icons
+    const GRIP_ICON_SVG = '<svg viewBox="0 0 16 16"><circle cx="5" cy="3" r="1.5" fill="currentColor"/><circle cx="11" cy="3" r="1.5" fill="currentColor"/><circle cx="5" cy="8" r="1.5" fill="currentColor"/><circle cx="11" cy="8" r="1.5" fill="currentColor"/><circle cx="5" cy="13" r="1.5" fill="currentColor"/><circle cx="11" cy="13" r="1.5" fill="currentColor"/></svg>';
     const OPEN_ICON_SVG = '<svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>';
     const DELETE_ICON_SVG = '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
 
@@ -130,11 +132,14 @@
 
         urlListEl.innerHTML = '';
 
+        const isSingleRow = currentLinks.length <= 1;
+
         currentLinks.forEach((link, index) => {
             const mode = rowModes[index] || 'url';
             const row = document.createElement('div');
             row.className = 'url-row';
             row.dataset.index = index;
+            row.draggable = false;
 
             const isTitleMode = mode === 'title';
             const displayValue = isTitleMode ? link.title : link.url;
@@ -143,7 +148,14 @@
                 ? (link.url ? link.url : 'No URL set')
                 : (link.title ? link.title : link.url);
 
+            const dragHandleAttrs = isSingleRow
+                ? 'disabled title="Single link cannot be reordered" aria-disabled="true"'
+                : 'title="Drag to reorder"';
+
             row.innerHTML = `
+                <button type="button" class="drag-handle" ${dragHandleAttrs} aria-label="Drag to reorder">
+                    ${GRIP_ICON_SVG}
+                </button>
                 <div class="mode-toggle" role="group" aria-label="Display Mode">
                     <button type="button" class="mode-btn mode-t ${isTitleMode ? 'active' : ''}" title="Title Mode" aria-label="Title Mode">T</button>
                     <button type="button" class="mode-btn mode-u ${!isTitleMode ? 'active' : ''}" title="URL Mode" aria-label="URL Mode">U</button>
@@ -165,11 +177,115 @@
                 </button>
             `;
 
+            const dragHandle = row.querySelector('.drag-handle');
             const modeTBtn = row.querySelector('.mode-t');
             const modeUBtn = row.querySelector('.mode-u');
             const input = row.querySelector('.url-input');
             const linkBtn = row.querySelector('.link-btn');
             const deleteBtn = row.querySelector('.delete-btn');
+
+            // Drag handle activation (controlled draggable pattern)
+            if (!isSingleRow) {
+                dragHandle.addEventListener('mousedown', () => {
+                    row.draggable = true;
+                });
+                dragHandle.addEventListener('mouseup', () => {
+                    if (draggedIndex === null) {
+                        row.draggable = false;
+                    }
+                });
+            }
+
+            // HTML5 Drag & Drop listeners
+            row.addEventListener('dragstart', (e) => {
+                if (isSingleRow) {
+                    e.preventDefault();
+                    return;
+                }
+                draggedIndex = index;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(index));
+                setTimeout(() => {
+                    if (draggedIndex !== null) {
+                        row.classList.add('dragging');
+                    }
+                }, 0);
+            });
+
+            row.addEventListener('dragover', (e) => {
+                if (draggedIndex === null) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                const rect = row.getBoundingClientRect();
+                const relY = e.clientY - rect.top;
+                const isAbove = relY < (rect.height / 2);
+
+                if (isAbove) {
+                    row.classList.add('drop-above');
+                    row.classList.remove('drop-below');
+                } else {
+                    row.classList.add('drop-below');
+                    row.classList.remove('drop-above');
+                }
+            });
+
+            row.addEventListener('dragleave', (e) => {
+                if (!row.contains(e.relatedTarget)) {
+                    row.classList.remove('drop-above', 'drop-below');
+                }
+            });
+
+            row.addEventListener('drop', (e) => {
+                e.preventDefault();
+                row.classList.remove('drop-above', 'drop-below');
+
+                if (draggedIndex === null) return;
+
+                const fromIdx = draggedIndex;
+                const rect = row.getBoundingClientRect();
+                const relY = e.clientY - rect.top;
+                const isAbove = relY < (rect.height / 2);
+
+                let targetIdx = index;
+                if (!isAbove) {
+                    targetIdx += 1;
+                }
+                if (fromIdx < targetIdx) {
+                    targetIdx -= 1;
+                }
+
+                draggedIndex = null;
+                row.draggable = false;
+
+                if (fromIdx !== targetIdx && targetIdx >= 0 && targetIdx < currentLinks.length) {
+                    debouncedSaver.flush();
+
+                    const [movedLink] = currentLinks.splice(fromIdx, 1);
+                    currentLinks.splice(targetIdx, 0, movedLink);
+
+                    const [movedMode] = rowModes.splice(fromIdx, 1);
+                    rowModes.splice(targetIdx, 0, movedMode);
+
+                    renderLinks(currentLinks);
+
+                    if (currentItem) {
+                        setStatus('saving');
+                        StorageManager.saveLinks(currentItem.id, currentLinks, currentItem).then(success => {
+                            setStatus(success ? 'saved' : 'error');
+                        });
+                    }
+                }
+            });
+
+            row.addEventListener('dragend', () => {
+                draggedIndex = null;
+                row.draggable = false;
+                urlListEl.querySelectorAll('.url-row').forEach(r => {
+                    r.classList.remove('dragging', 'drop-above', 'drop-below');
+                    r.draggable = false;
+                });
+            });
 
             // Switch display mode helper
             const switchMode = (targetMode) => {
@@ -428,6 +544,20 @@
         if (e.key === 'Escape') {
             if (!deleteModal.classList.contains('hidden')) hideDeleteModal();
             if (!settingsModal.classList.contains('hidden')) hideSettingsModal();
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (draggedIndex === null) {
+            urlListEl.querySelectorAll('.url-row').forEach(r => {
+                r.draggable = false;
+            });
+        }
+    });
+
+    urlListEl.addEventListener('dragover', (e) => {
+        if (draggedIndex !== null) {
+            e.preventDefault();
         }
     });
 

@@ -201,10 +201,78 @@ body[theme="PURPLE"] {
 
 /* URL Row */
 .url-row {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 6px;
     width: 100%;
+    transition: opacity 0.15s ease;
+}
+
+.url-row.dragging {
+    opacity: 0.45;
+}
+
+.url-row.drop-above::before,
+.url-row.drop-below::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--btn-primary-bg, #3a75c4);
+    border-radius: 1px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.url-row.drop-above::before {
+    top: -4px;
+}
+
+.url-row.drop-below::after {
+    bottom: -4px;
+}
+
+/* Drag Handle */
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    color: var(--icon-color);
+    cursor: grab;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: var(--border-radius);
+    outline: none;
+    transition: var(--transition);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.drag-handle:hover {
+    color: var(--icon-hover);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle[disabled] {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+}
+
+.drag-handle svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+    pointer-events: none;
 }
 
 /* Mode Toggle Button Group */

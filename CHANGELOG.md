@@ -5,6 +5,21 @@ All notable changes to the **Eagle Extra Links** plugin will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-09
+
+### Added
+- **Clickable Drag Handler & Link Sorting**:
+  - Dedicated 6-dot grip handle (`.drag-handle`) positioned on the far left of each row.
+  - Safe controlled drag pattern: rows are only draggable when mouse interaction begins on `.drag-handle`, fully preserving native text selection in inputs.
+  - Drop visual feedback (Option A): 2px accent-colored insertion lines (`.drop-above` / `.drop-below`) indicating the exact drop position, with dragged row fading to 45% opacity.
+  - Single-row disabled state (Option A): drag handle remains visible on single rows but is dimmed (`opacity: 0.35`) and disabled (`cursor: default`), preventing unnecessary drag actions.
+  - Atomic synchronization: reordering splices both `currentLinks` and `rowModes` concurrently to preserve active display modes across row movements.
+  - Immediate persistence: automatically saves reordered links to `extra-links.json` without debounce delays upon dropping.
+- **Specification Suite**:
+  - Full specification suite added under `spec/click-drag-sort/` (`requirements.md`, `tech.md`, `design.md`, `api.md`, `obsidian-integration.md`, `tasks.md`).
+- **Automated Testing**:
+  - Unit tests added to `test/test-runner.js` for DnD drop index calculation logic and disk persistence of sorted lists.
+
 ## [1.1.0] - 2026-09-08
 
 ### Added

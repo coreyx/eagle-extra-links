@@ -1,4 +1,36 @@
-# Release Notes: Eagle Extra Links v1.0.0
+# Release Notes: Eagle Extra Links
+
+## Release Notes: v1.2.0 (Clickable Drag Handler & Link Sorting)
+
+**v1.2.0** introduces interactive drag-and-drop link reordering:
+
+### 1. Clickable Drag Handler (`⋮⋮`)
+- Each row features a dedicated 6-dot grip handle on the far left.
+- **Controlled Draggable Pipeline**: Dragging is only initiated from the handle, ensuring that text selection and cursor movement within `.url-input` fields are never compromised.
+- **Single-Row State**: When only one link row exists, the handle is automatically dimmed (`opacity: 0.35`) and disabled (`cursor: default`).
+
+### 2. Option A Drop Indicator Lines
+- While dragging over other rows, a 2px accent-colored insertion line (`--btn-primary-bg`) indicates whether the link will be dropped above or below the hovered target.
+- The dragged row dims to 45% opacity during the drag operation.
+
+### 3. Immediate State & Mode Preservation
+- Dropping a row splices both `currentLinks` and `rowModes` in lockstep, preserving active Title (`T`) and URL (`U`) display states.
+- Saves immediately to `extra-links.json` without debounce delay.
+
+---
+
+## Release Notes: v1.1.0 (Title and URL Display Modes)
+
+**v1.1.0** added support for human-readable link titles:
+- **Title and URL Display Modes**: Segmented `[T|U]` button toggle on each row with active state styling.
+- **Smart Defaults**: Rows with a title default to Title Mode; rows without a title default to URL Mode.
+- **Hover Tooltips**: In Title Mode, hovering over an input shows the target URL in a tooltip.
+- **Schema Version 2**: Upgraded `extra-links.json` with automatic backward compatibility for v1 string arrays.
+- **Idempotent Title Enrichment**: Appending duplicate links with a new title enriches empty titles in-place.
+
+---
+
+## Release Notes: v1.0.0 (Initial Release)
 
 We are thrilled to announce the initial **v1.0.0** release of **Extra Links for Eagle** (`eagle.cool`)!
 

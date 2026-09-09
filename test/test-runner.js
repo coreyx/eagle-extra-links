@@ -58,6 +58,32 @@ async function runTests() {
     ConfigManager.saveConfig({ port: 41596 });
     console.log('   ✓ ConfigManager tests passed.');
 
+    // 2b. Test Drag & Drop Reorder Index Logic
+    console.log('2b. Testing DnD Reorder Index Logic...');
+    function computeDropTarget(fromIdx, targetIdx, isAbove) {
+        let newIdx = targetIdx;
+        if (!isAbove) {
+            newIdx += 1;
+        }
+        if (fromIdx < newIdx) {
+            newIdx -= 1;
+        }
+        return newIdx;
+    }
+
+    // Moving item 0 below item 2 (isAbove: false) -> target 2
+    assert.strictEqual(computeDropTarget(0, 2, false), 2);
+    // Moving item 0 above item 2 (isAbove: true) -> target 1
+    assert.strictEqual(computeDropTarget(0, 2, true), 1);
+    // Moving item 3 above item 1 (isAbove: true) -> target 1
+    assert.strictEqual(computeDropTarget(3, 1, true), 1);
+    // Moving item 3 below item 1 (isAbove: false) -> target 2
+    assert.strictEqual(computeDropTarget(3, 1, false), 2);
+    // Dropping onto self above/below results in no net movement
+    assert.strictEqual(computeDropTarget(1, 1, true), 1);
+    assert.strictEqual(computeDropTarget(1, 1, false), 1);
+    console.log('   ✓ DnD Reorder Index Logic tests passed.');
+
     // 3. Test StorageManager
     console.log('3. Testing StorageManager...');
     const sampleDir = 'I:\\My Drive\\Eagle\\Main.library\\images\\MTSPUNN17LBUG.info';
@@ -139,7 +165,29 @@ async function runTests() {
         assert.strictEqual(removed.length, 1);
         assert.strictEqual(removed[0].url, 'https://example.com/test');
 
-        console.log('   ✓ StorageManager tests passed.');
+        // Test Link Reordering & Persistence (Click & Drag Sort)
+        const reorderSource = [
+            { title: 'Item 0', url: 'https://0.com' },
+            { title: 'Item 1', url: 'https://1.com' },
+            { title: 'Item 2', url: 'https://2.com' }
+        ];
+        await StorageManager.saveLinks('MTSPUNN17LBUG', reorderSource);
+
+        // Move Item 2 to index 0: [Item 2, Item 0, Item 1]
+        const reordered = [...reorderSource];
+        const [moved] = reordered.splice(2, 1);
+        reordered.splice(0, 0, moved);
+
+        const reorderSaveOk = await StorageManager.saveLinks('MTSPUNN17LBUG', reordered);
+        assert.strictEqual(reorderSaveOk, true, 'Reordered save should succeed');
+
+        const reorderedLoaded = await StorageManager.loadLinks('MTSPUNN17LBUG');
+        assert.deepStrictEqual(reorderedLoaded, reordered, 'Loaded links must match newly sorted order exactly');
+        assert.strictEqual(reorderedLoaded[0].title, 'Item 2');
+        assert.strictEqual(reorderedLoaded[1].title, 'Item 0');
+        assert.strictEqual(reorderedLoaded[2].title, 'Item 1');
+
+        console.log('   ✓ StorageManager tests passed (including reordering).');
     } else {
         console.log('   ⚠ Skipping physical library test (sample dir not found)');
     }

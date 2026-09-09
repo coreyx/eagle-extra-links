@@ -7,31 +7,31 @@
 
 **Extra Links** is an Inspector plugin for [Eagle](https://eagle.cool) (`eagle.cool`) that allows creatives, researchers, and knowledge workers to associate **multiple clickable URLs, URIs, and deep links** (Obsidian backlinks, Figma files, ArtStation references, Notion pages, local file links) with any asset in their Eagle library.
 
-It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mode toggles**, URL preview tooltips on hover, safe **atomic sidecar storage** (`extra-links.json`), native 6-theme adaptation, and an **embedded Node.js HTTP REST IPC server** with IP access control and automatic link deduplication for smooth, naive Obsidian paste integration.
+It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mode toggles**, URL preview tooltips on hover, **clickable drag-and-drop link reordering**, safe **atomic sidecar storage** (`extra-links.json`), native 6-theme adaptation, and an **embedded Node.js HTTP REST IPC server** with IP access control and automatic link deduplication for smooth, naive Obsidian paste integration.
 
 ---
 
 ## 📸 Overview & Visual Interface
 
 ```
-+-------------------------------------------------------------+
-| EXTRA LINKS                                       Saved [⚙] |
-|                                                             |
-| +----+ +-------------------------------------+--+   +-------+ |
-| |*T*|U| | Character Turnaround Sheet           |[]|   |   X   | |
-| +----+ +-------------------------------------+--+   +-------+ |
-|   ^      ^ Human-readable title                ^         ^    |
-| Mode     (Hover cursor for URL preview)     Launch    Delete  |
-| Toggle                                                        |
-|                                                               |
-| +----+ +-------------------------------------+--+   +-------+ |
-| | T|*U*| | obsidian://adv-uri?vault=Main...    |[]|   |   X   | |
-| +----+ +-------------------------------------+--+   +-------+ |
-|   ^      ^ Raw URL mode (Title empty or user viewing URL)     |
-|   U active                                                    |
-|                                                               |
-| [+ Add URL]                                                 |
-+-------------------------------------------------------------+
++-------------------------------------------------------------------------+
+| EXTRA LINKS                                                   Saved [⚙] |
+|                                                                         |
+| +----+ +----+ +-------------------------------------+--+   +----------+ |
+| |::::| |*T*|U| | Character Turnaround Sheet           |[]|   |    X     | |
+| +----+ +----+ +-------------------------------------+--+   +----------+ |
+|   ^      ^      ^ Human-readable title                ^          ^      |
+| Drag    Mode    (Hover cursor for URL preview)     Launch     Delete    |
+| Handle  Toggle                                                          |
+|                                                                         |
+| +----+ +----+ +-------------------------------------+--+   +----------+ |
+| |::::| | T|*U*| | obsidian://adv-uri?vault=Main...    |[]|   |    X     | |
+| +----+ +----+ +-------------------------------------+--+   +----------+ |
+|          ^      ^ Raw URL mode (Title empty or user viewing URL)        |
+|          U active                                                       |
+|                                                                         |
+| [+ Add URL]                                                             |
++-------------------------------------------------------------------------+
 ```
 
 ---
@@ -39,6 +39,12 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
 ## ✨ Features
 
 - 🔗 **Unlimited Links per Item**: Break free from Eagle's single-URL limitation. Attach references, source pages, project notes, or design files to any asset.
+- ↕️ **Click & Drag Link Sorting**:
+  - Reorder links intuitively one item at a time using a dedicated 6-dot grip handle (`⋮⋮`) on the far left.
+  - **Drop Indicator Lines**: Clear 2px accent-colored insertion lines preview exactly where the row will land (above or below hovered item).
+  - **Text Selection Safety**: Drag is strictly gated to the handle (`mousedown`), so selecting, clicking, or highlighting text inside the input box is never hijacked.
+  - **State-Preserving & Immediate**: Swapping rows preserves active Title/URL display modes and saves directly to disk without debounce delay.
+  - **Single-Row State**: Dimmed handle (`opacity: 0.35`, `cursor: default`) when only one row exists.
 - 🏷️ **Human-Readable Titles & Modes (`[T|U]`)**:
   - Each row features a segmented **`T`** (Title) and **`U`** (URL) toggle.
   - **Smart Default**: Rows with a title open in Title Mode (`T` active); rows without a title open in URL Mode (`U` active).
@@ -106,6 +112,13 @@ Double-click the exported `.eagleplugin` package to install directly into Eagle.
 ### Deleting Links
 - Click the delete button (`✕`) on any row.
 - A confirmation modal will appear: press `Enter` or click **Yes** to confirm, or press `Escape` / click **No** to cancel.
+
+### Reordering Links (Drag & Drop)
+- Click and hold the 6-dot grip handle (`⋮⋮`) on the far left of any row.
+- Drag up or down over other rows. A 2px accent indicator line will preview where the row will be placed (above or below the hovered target).
+- Release the mouse button to drop. The links immediately reorder and save to disk, preserving each link's active Title/URL display mode.
+- Selecting, double-clicking, or highlighting text inside the input box never triggers a drag.
+- When an item has only a single link row, the drag handle is automatically dimmed and disabled.
 
 ---
 
