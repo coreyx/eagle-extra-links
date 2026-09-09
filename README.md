@@ -13,26 +13,19 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
 
 ## 📸 Overview & Visual Interface
 
-```
-+-------------------------------------------------------------------------+
-| EXTRA LINKS                                                   Saved [⚙] |
-|                                                                         |
-| +----+ +----+ +-------------------------------------+--+   +----------+ |
-| |::::| |*T*|U| | Character Turnaround Sheet           |[]|   |    X     | |
-| +----+ +----+ +-------------------------------------+--+   +----------+ |
-|   ^      ^      ^ Human-readable title                ^          ^      |
-| Drag    Mode    (Hover cursor for URL preview)     Launch     Delete    |
-| Handle  Toggle                                                          |
-|                                                                         |
-| +----+ +----+ +-------------------------------------+--+   +----------+ |
-| |::::| | T|*U*| | obsidian://adv-uri?vault=Main...    |[]|   |    X     | |
-| +----+ +----+ +-------------------------------------+--+   +----------+ |
-|          ^      ^ Raw URL mode (Title empty or user viewing URL)        |
-|          U active                                                       |
-|                                                                         |
-| [+ Add URL]                                                             |
-+-------------------------------------------------------------------------+
-```
+<p align="center">
+  <img src="assets/screenshot.png" alt="Eagle Extra Links Inspector Interface" width="480">
+</p>
+
+| UI Element | Function |
+| :--- | :--- |
+| **`⋮⋮` Drag Handle** | Click & drag to intuitively reorder links (dimmed on single rows) |
+| **`[ T \| U ]` Mode Toggle** | Segmented toggle between Title mode and raw URL mode |
+| **Text Input** | Displays human-readable title (with URL hover tooltip) or raw URL |
+| **`↗` Open Icon** | Launches the URL in default browser or OS handler (`Enter` also launches) |
+| **`✕` Delete Button** | Safely removes the link with a Yes/No confirmation dialog |
+| **`⚙️` Settings Gear** | Configures the embedded IPC REST server port and IP whitelist |
+| **`+ Add URL`** | Dynamically appends an additional URL field to the asset |
 
 ---
 
@@ -368,6 +361,8 @@ node test-push-link.js --standalone --title "Documentation" --url "https://eagle
 
 ```
 eagle-extra-links/
+├── assets/
+│   └── screenshot.png                # Inspector UI screenshot preview
 ├── css/
 │   └── style.css                     # Native Eagle theming (6 themes), drag handles & drop lines
 ├── js/
