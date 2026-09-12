@@ -78,7 +78,7 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
 ### Option 1: Developer Mode (Recommended for testing & development)
 1. Clone or download this repository:
    ```bash
-   git clone https://github.com/your-username/eagle-extra-links.git
+   git clone https://github.com/coreyx/eagle-extra-links.git
    ```
 2. Open **Eagle** (`eagle.cool`).
 3. In the menu bar, navigate to **Eagle > Preferences > Developer** (or enable Developer Mode).
