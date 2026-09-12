@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed an issue where deleting the last link in an item persisted an empty placeholder `{ title: "", url: "" }` to `extra-links.json` instead of `[]`.
   - Updated `StorageManager.appendLink()` to automatically filter out completely empty placeholder links (`!url && !title`), ensuring that pushing a link to an empty item or an item with unpopulated placeholders populates slot 0 without creating an unwanted second slot.
   - Updated real-time IPC update handler in `app.js` to reset row modes so pushed links with titles automatically default to Title mode per REQ-11.1.
+- **Expanded File Type Support in Inspector**:
+  - Expanded `manifest.json`'s `preview` definition from 27 basic extensions to 138 formats supported across Eagle, resolving an issue where modern raster formats (`.avif`, `.heic`, `.jxl`), RAW camera images, 3D models, and office documents did not render the Extra Links Inspector panel.
 
 ## [1.1.0] - 2026-09-08
 

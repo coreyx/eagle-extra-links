@@ -16,7 +16,7 @@
     ],
     "devTools": true,
     "preview": {
-        "jpg,jpeg,png,gif,webp,bmp,tif,tiff,svg,ai,eps,pdf,txt,md,mp4,mov,avi,webm,mkv,mp3,wav,m4a,flac,aac,url,webloc,html": {
+        "jpg,jpeg,png,gif,webp,bmp,tif,tiff,avif,heic,heif,hif,jfif,jxl,jpe,insp,ico,icns,tga,dds,exr,hdr,svg,ai,ait,eps,psd,psb,psdt,xd,sketch,fig,af,afdesign,afphoto,afpub,idml,indd,indt,cdr,clip,dwg,graffle,skp,xmind,fbx,obj,glb,gltf,blend,blender,3ds,3mf,dae,ifc,ply,stl,usdz,usdc,vox,c4d,raw,arw,cr2,cr3,crw,dng,erf,mrw,nef,nrw,orf,pef,raf,rw2,sr2,srw,x3f,3fr,dcp,exv,pgf,mp4,mov,avi,webm,mkv,m4v,flv,wmv,ts,mpeg,mpg,3gp,ogv,rm,rmvb,vob,mp3,wav,m4a,flac,aac,ogg,wma,aiff,alac,ac3,pdf,txt,md,markdown,doc,docx,ppt,pptx,potx,xls,xlsx,rtf,epub,json,yaml,yml,xml,csv,eddx,emmx,otf,ttf,ttc,woff,woff2,url,webloc,html,htm,mhtml": {
             "inspector": {
                 "path": "index.html",
                 "height": 140,

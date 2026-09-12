@@ -69,7 +69,7 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
   - Configurable port (`1024`–`65535`).
   - IP restriction filter with CIDR/wildcard matching (`192.168.1.x`, `self`, `127.0.0.1`, `::1`).
 - 📁 **Universal Format Support**:
-  - Appears for all major Eagle asset formats: images (`jpg, png, gif, webp, svg`), vectors (`ai, eps`), documents (`pdf, txt, md`), video (`mp4, mov, webm`), audio (`mp3, wav, flac`), and bookmarks (`url, html`).
+  - Supports all 130+ media and asset formats in Eagle: modern raster images (`jpg, png, gif, webp, avif, heic, jxl, raw, psd`), vectors (`svg, ai, eps, cdr`), 3D models (`obj, fbx, glb, blend`), documents (`pdf, txt, md, docx, xlsx, pptx`), video (`mp4, mov, avi, mkv, webm`), audio (`mp3, wav, flac, m4a`), fonts (`otf, ttf, woff`), and bookmarks (`url, webloc, html`).
 
 ---
 

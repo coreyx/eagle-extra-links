@@ -51,11 +51,13 @@ Extra Links is an Inspector plugin designed for creatives, researchers, and know
 - Empty fields are cleanly preserved as blank slots so you can organize template rows without losing your layout.
 
 ### 2. Universal File Format Support
-- The Extra Links inspector panel automatically appears for all major digital asset types supported by Eagle:
-  - **Images & Vectors**: `jpg`, `jpeg`, `png`, `gif`, `webp`, `bmp`, `tif`, `tiff`, `svg`, `ai`, `eps`
-  - **Documents**: `pdf`, `txt`, `md`
-  - **Video & Audio**: `mp4`, `mov`, `avi`, `webm`, `mkv`, `mp3`, `wav`, `m4a`, `flac`, `aac`
-  - **Web & Bookmarks**: `url`, `webloc`, `html`
+- The Extra Links inspector panel automatically appears for all 130+ asset types supported by Eagle:
+  - **Images & Vectors**: `jpg`, `jpeg`, `png`, `gif`, `webp`, `avif`, `heic`, `jxl`, `bmp`, `tif`, `tiff`, `svg`, `ai`, `eps`, `psd`, `cdr`, `raw`, `dng`, `arw`, `cr3`
+  - **3D Assets**: `obj`, `fbx`, `glb`, `gltf`, `blend`, `stl`, `3ds`, `c4d`
+  - **Documents & Data**: `pdf`, `txt`, `md`, `docx`, `xlsx`, `pptx`, `epub`, `json`, `csv`
+  - **Video & Audio**: `mp4`, `mov`, `avi`, `webm`, `mkv`, `m4v`, `mp3`, `wav`, `m4a`, `flac`, `aac`, `ogg`
+  - **Fonts**: `otf`, `ttf`, `woff`, `woff2`
+  - **Web & Bookmarks**: `url`, `webloc`, `html`, `htm`
 
 ### 3. Safe, Atomic Sidecar Metadata Storage
 - Eagle stores library items inside `<LibraryPath>/images/<itemId>.info/`.
