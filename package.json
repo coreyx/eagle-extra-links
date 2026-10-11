@@ -1,0 +1,12 @@
+{
+    "name": "eagle-extra-links",
+    "private": true,
+    "description": "Attach multiple clickable URLs, URIs, and Obsidian links to Eagle content items with IPC support.",
+    "license": "MIT",
+    "packageManager": "pnpm@12.6.0",
+    "scripts": {
+        "build": "node scripts/build-release.js",
+        "test": "node test/test-runner.js",
+        "push-link": "node test-push-link.js"
+    }
+}

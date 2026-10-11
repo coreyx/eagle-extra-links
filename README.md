@@ -88,6 +88,32 @@ It includes **human-readable titles** with instant **Title (`T`) / URL (`U`) mod
 ### Option 2: Eagle Plugin Package
 Double-click the exported `.eagleplugin` package to install directly into Eagle.
 
+#### Building the package
+An `.eagleplugin` file is a plain zip of the plugin folder's contents, so the build script produces it directly:
+
+```bash
+pnpm build
+```
+
+This does two things:
+
+1. **Stages** only the runtime files (`manifest.json`, `index.html`, `logo.png`, `LICENSE`, `css/`, `js/`) into `dist/eagle-extra-links/` and sets `devTools` to `false` in the staged manifest. The folder is wiped and rebuilt on every run.
+2. **Packs** that folder into `dist/eagle-extra-links-<version>.eagleplugin`, using the version from `manifest.json`.
+
+The package has the same layout as the one Eagle's own **Pack Plugin** action writes (plugin panel > right-click the plugin > **Pack Plugin**). To pack with Eagle instead, load `dist/eagle-extra-links/` as an unpacked plugin and use that action.
+
+> **Adding a runtime dependency?** The build does not stage `node_modules/` yet, and `pnpm build` fails on purpose if `package.json` lists any `dependencies`. Extend `scripts/build-release.js` to copy the production dependencies into `dist/` first.
+
+#### Publishing a release
+The [Build and Release](.github/workflows/build.yml) GitHub Actions workflow runs `pnpm test` and `pnpm build` on every push to `main` and every pull request, and keeps the `.eagleplugin` as a workflow artifact. Pushing a version tag also publishes a GitHub release with the package attached:
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+The tag must match the `version` in `manifest.json` (`v1.2.0` for `1.2.0`) or the workflow fails. The release body is that version's section of `RELEASE_NOTES.md`, falling back to `CHANGELOG.md`, then to GitHub's auto-generated notes.
+
 ---
 
 ## 🖥️ Using the Inspector UI
@@ -281,8 +307,16 @@ Main.library/
 The repository includes a comprehensive, zero-dependency automated unit and integration test runner verifying all subsystems:
 
 ```bash
-node test/test-runner.js
+pnpm test
 ```
+
+The project has no dependencies, so [pnpm](https://pnpm.io) is only used as a task runner; no install step is needed. The scripts are defined in `package.json`:
+
+| Command | Runs | Purpose |
+| :--- | :--- | :--- |
+| `pnpm test` | `node test/test-runner.js` | Automated test suite |
+| `pnpm build` | `node scripts/build-release.js` | Stage and pack the `.eagleplugin` release in `dist/` |
+| `pnpm push-link` | `node test-push-link.js` | Interactive CLI link tester (flags pass straight through) |
 
 **Test Coverage**:
 - IP access filter (IPv4/IPv6 normalization, loopback `self`, wildcard ranges `192.168.1.x`).
@@ -361,6 +395,9 @@ node test-push-link.js --standalone --title "Documentation" --url "https://eagle
 
 ```
 eagle-extra-links/
+├── .github/
+│   └── workflows/
+│       └── build.yml                 # CI: test, build .eagleplugin, publish release on version tags
 ├── assets/
 │   └── screenshot.png                # Inspector UI screenshot preview
 ├── css/
@@ -371,6 +408,9 @@ eagle-extra-links/
 │   ├── ip-filter.js                  # Access control & IP matching middleware
 │   ├── ipc-server.js                 # Embedded Node.js HTTP REST IPC server
 │   └── storage.js                    # Atomic sidecar storage engine & Schema v2
+├── scripts/
+│   ├── build-release.js              # Stages runtime files and packs the .eagleplugin into dist/
+│   └── release-notes.js              # Prints one version's notes for the GitHub release body
 ├── spec/
 │   ├── eagle-extra-links/            # Core system specifications (v1.0.0)
 │   ├── title-and-url-modes/          # Title & URL display mode specifications (v1.1.0)
@@ -388,6 +428,9 @@ eagle-extra-links/
 ├── CHANGELOG.md                      # Keep a Changelog version history
 ├── RELEASE_NOTES.md                  # User-facing release notes
 ├── manifest.json                     # Eagle plugin manifest
+├── package.json                      # pnpm scripts (build, test, push-link); no dependencies
+├── pnpm-lock.yaml                    # Pins the pnpm version
+├── pnpm-workspace.yaml               # pnpm settings (hoisted node_modules, no symlinks)
 ├── index.html                        # Inspector HTML layout & dialog markup
 └── README.md                         # Project documentation
 ```
